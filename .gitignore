@@ -1,38 +1,36 @@
-*.iml
-.kotlin
-.gradle
+# Gradle & Build outputs
+.gradle/
+build/
 **/build/
-xcuserdata
 !src/**/build/
+
+# Android Studio & IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.externalNativeBuild/
+.cxx/
+captures/
+
+# Local configuration & environment
 local.properties
-.idea
-.DS_Store
-captures
-.externalNativeBuild
-.cxx
-*.xcodeproj/*
-!*.xcodeproj/project.pbxproj
-!*.xcodeproj/xcshareddata/
-!*.xcodeproj/project.xcworkspace/
-!*.xcworkspace/contents.xcworkspacedata
-**/xcshareddata/WorkspaceSettings.xcsettings
-node_modules/
+.env
+.env.local
+metadata.json
+
+# Signing & Keystores (exclude release keys)
+*.jks
+*.key
 
 # Google Services
 google-services.json
 
-# --- SEGURIDAD Y FIRMAS (¡CRÍTICO!) ---
-*.jks
-*.keystore
-*.key
-.env
+# Kotlin compiler caches
+.kotlin/
 
-# --- ECOSISTEMA iOS Y COCOAPODS ---
-Pods/
-.swiftpm/
-DerivedData/
-
-# --- DESECHOS DE OTROS SISTEMAS OPERATIVOS ---
+# OS specific files
+.DS_Store
+.DS_Store?
 Thumbs.db
 ehthumbs.db
-.DS_Store?

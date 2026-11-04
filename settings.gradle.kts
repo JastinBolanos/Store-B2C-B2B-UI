@@ -1,4 +1,4 @@
-rootProject.name = "E-CommerceKMP"
+rootProject.name = "RemediozNatura"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
@@ -28,4 +28,4 @@ dependencyResolutionManagement {
     }
 }
 
-include(":composeApp")
+include(":app")
