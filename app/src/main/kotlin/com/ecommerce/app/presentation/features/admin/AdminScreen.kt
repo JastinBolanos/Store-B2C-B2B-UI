@@ -128,38 +128,13 @@ fun AdminScreen(
                     .padding(20.dp)
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "ATELIER OPERATIONS",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.4.sp,
-                            color = LuxuryPalette.ForestOlive
-                        )
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(if (pendingOrdersCount > 0) LuxuryPalette.TerracottaLight else LuxuryPalette.ForestOliveLight)
-                                .border(
-                                    1.dp,
-                                    if (pendingOrdersCount > 0) LuxuryPalette.Terracotta.copy(alpha = 0.3f) else LuxuryPalette.ForestOlive.copy(alpha = 0.3f),
-                                    RoundedCornerShape(4.dp)
-                                )
-                                .padding(horizontal = 8.dp, vertical = 3.dp)
-                        ) {
-                            Text(
-                                text = if (pendingOrdersCount > 0) "$pendingOrdersCount PENDING VERIFICATION" else "ALL ORDERS DISPATCHED",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp,
-                                color = if (pendingOrdersCount > 0) LuxuryPalette.Terracotta else LuxuryPalette.ForestOlive
-                            )
-                        }
-                    }
+                    Text(
+                        text = "ATELIER OPERATIONS",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.4.sp,
+                        color = LuxuryPalette.ForestOlive
+                    )
 
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(

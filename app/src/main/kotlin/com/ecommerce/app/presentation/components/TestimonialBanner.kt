@@ -118,15 +118,7 @@ fun TestimonialBanner(modifier: Modifier = Modifier) {
                     .align(Alignment.BottomStart)
                     .padding(24.dp)
             ) {
-                Text(
-                    text = "THE BOTANICAL EDIT",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.5.sp,
-                    color = LuxuryPalette.PureWhite.copy(alpha = 0.9f)
-                )
 
-                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = "Harmonious Alchemy",
