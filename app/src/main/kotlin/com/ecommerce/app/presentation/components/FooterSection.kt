@@ -1,6 +1,12 @@
 package com.ecommerce.app.presentation.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,6 +15,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -16,42 +23,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ecommerce.app.presentation.theme.LuxuryPalette
 
 /**
  * ============================================================================
- * 🕵️‍♂️ FOOTER SECTION & HIDDEN ADMIN PORTAL
- * ============================================================================
- * * @description
- * This component acts as the standard application footer, displaying brand
- * information, standard legal/help routing links, and copyright data.
- * Crucially, it houses a hidden "Easter Egg" administrative login portal
- * that expands via an interactive chevron, keeping the consumer-facing UX
- * uncluttered while maintaining admin accessibility.
- * * Key Compose UI/UX Features implemented:
- * - Expandable State: Uses local `remember { mutableStateOf(false) }` to
- * conditionally animate and render the admin input fields.
- * - Secure Text Entry: Utilizes `PasswordVisualTransformation` to mask sensitive
- * administrative credentials from screen-readers and shoulder-surfers.
- * - Dark Mode Aesthetics: Hardcoded dark theme (`Color(0xFF0A0A0A)`) to visually
- * anchor the bottom of the scrollable lists.
- * * 🔌 NOTE FOR BACKEND / AUTH TEAM:
- * The current `onAdminLoginClick` lambda is parameter-less, acting purely as a
- * routing trigger for showcase purposes. When migrating to real authentication,
- * update the lambda signature to `(email: String, password: String) -> Unit`
- * to pass the captured internal states directly to the `AuthViewModel` for
- * JWT validation.
- * * @layer Presentation / Components
+ * 🌿 LUXURY FOOTER & ATELIER PORTAL (MANGO EDITORIAL STYLING)
  * ============================================================================
  */
-
 @Composable
-fun FooterSection(modifier: Modifier = Modifier, onAdminLoginClick: () -> Unit) {
-    // --- COMPONENT MEMORY ---
+fun FooterSection(
+    modifier: Modifier = Modifier,
+    onAdminLoginClick: () -> Unit
+) {
     var isAdminExpanded by remember { mutableStateOf(false) }
     var emailAdmin by remember { mutableStateOf("") }
     var passwordAdmin by remember { mutableStateOf("") }
@@ -59,109 +48,206 @@ fun FooterSection(modifier: Modifier = Modifier, onAdminLoginClick: () -> Unit) 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFF0A0A0A))
-            .padding(32.dp)
+            .background(LuxuryPalette.Onyx)
+            .padding(horizontal = 24.dp, vertical = 40.dp)
     ) {
-        // Brand title
-        Text("Remedioz Natura", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Real description
+        // Brand Title
         Text(
-            text = "E-commerce platform dedicated to the sale of natural products for comprehensive health and well-being.",
-            color = Color.Gray,
-            fontSize = 14.sp,
+            text = "REMEDIOZ NATURA",
+            color = LuxuryPalette.PureWhite,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 2.5.sp
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Brand Manifesto
+        Text(
+            text = "Handcrafted organic formulations, cold-pressed active botanicals, and restorative rituals designed for conscious everyday luxury.",
+            color = Color(0xFFA5A29D),
+            fontSize = 13.sp,
             lineHeight = 20.sp
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(28.dp))
+        HorizontalDivider(color = Color(0xFF262626), thickness = 1.dp)
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Bottom menu
-        Text("MENU", color = Color.White, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        val menuItems = listOf("Help", "Contact Us", "About Us", "FAQ", "Terms and Conditions")
-        menuItems.forEach { item ->
-            Text(
-                text = item,
-                color = Color.LightGray,
-                fontSize = 14.sp,
-                modifier = Modifier.padding(vertical = 10.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // --- HIDDEN ADMIN PANEL ---
-        if (isAdminExpanded) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Email Input
-            OutlinedTextField(
-                value = emailAdmin,
-                onValueChange = { emailAdmin = it },
-                placeholder = { Text("Enter Admin Email", color = Color.Gray) },
-                shape = RoundedCornerShape(50),
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.DarkGray,
-                    cursorColor = Color.White
-                )
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Password Input
-            OutlinedTextField(
-                value = passwordAdmin,
-                onValueChange = { passwordAdmin = it },
-                placeholder = { Text("Password", color = Color.Gray) },
-                shape = RoundedCornerShape(50),
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(0.7f),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.DarkGray,
-                    cursorColor = Color.White
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Login Button
-            Button(
-                onClick = { onAdminLoginClick() },
-                shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+        // Three Pillars of Quality
+        val pillars = listOf(
+            "100% PURE BOTANICAL ACTIVE INGREDIENTS",
+            "CRUELTY-FREE & SUSTAINABLY HARVESTED",
+            "CLIMATE-NEUTRAL ECO PACKAGING"
+        )
+        pillars.forEach { pillar ->
+            Row(
+                modifier = Modifier.padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Login", color = Color.Black, fontWeight = FontWeight.Bold)
+                Box(
+                    modifier = Modifier
+                        .size(4.dp)
+                        .background(LuxuryPalette.Champagne)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = pillar,
+                    color = Color(0xFFC7C3BD),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 1.2.sp
+                )
             }
         }
 
-        // --- TOUCHABLE ARROW ---
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.CenterEnd
+        Spacer(modifier = Modifier.height(32.dp))
+        HorizontalDivider(color = Color(0xFF262626), thickness = 1.dp)
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Editorial Menu Links
+        Text(
+            text = "CUSTOMER CARE & ATELIER",
+            color = LuxuryPalette.PureWhite,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.6.sp
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        val menuItems = listOf("Shipping & Delivery", "Sustainable Sourcing", "Ritual Consultations", "Terms & Atelier Policies")
+        menuItems.forEach { item ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { /* Editorial navigation */ }
+                    .padding(vertical = 8.dp)
+            ) {
+                Text(
+                    text = item,
+                    color = Color(0xFF8E8B85),
+                    fontSize = 13.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Discrete Admin Portal Toggle
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(6.dp))
+                .clickable { isAdminExpanded = !isAdminExpanded }
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(
+                text = "MANAGEMENT & ATELIER PORTAL",
+                color = Color(0xFF706E69),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 1.4.sp
+            )
+
             Icon(
                 imageVector = if (isAdminExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = "Expand Admin",
-                tint = Color.White,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clickable {
-                        isAdminExpanded = !isAdminExpanded
-                    }
+                contentDescription = "Toggle Portal",
+                tint = Color(0xFF706E69),
+                modifier = Modifier.size(20.dp)
             )
         }
+
+        // Expandable Admin Panel
+        AnimatedVisibility(
+            visible = isAdminExpanded,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+                    .background(Color(0xFF161616), RoundedCornerShape(8.dp))
+                    .border(1.dp, Color(0xFF2B2B2B), RoundedCornerShape(8.dp))
+                    .padding(20.dp)
+            ) {
+                Text(
+                    text = "ATELIER CREDENTIALS",
+                    color = LuxuryPalette.Champagne,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.4.sp
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+
+                OutlinedTextField(
+                    value = emailAdmin,
+                    onValueChange = { emailAdmin = it },
+                    placeholder = { Text("admin@remedioznatura.com", color = Color(0xFF6B6864), fontSize = 13.sp) },
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = LuxuryPalette.PureWhite,
+                        unfocusedTextColor = LuxuryPalette.PureWhite,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedBorderColor = LuxuryPalette.Champagne,
+                        unfocusedBorderColor = Color(0xFF333333),
+                        cursorColor = LuxuryPalette.Champagne
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                OutlinedTextField(
+                    value = passwordAdmin,
+                    onValueChange = { passwordAdmin = it },
+                    placeholder = { Text("Master Passkey", color = Color(0xFF6B6864), fontSize = 13.sp) },
+                    shape = RoundedCornerShape(4.dp),
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = LuxuryPalette.PureWhite,
+                        unfocusedTextColor = LuxuryPalette.PureWhite,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedBorderColor = LuxuryPalette.Champagne,
+                        unfocusedBorderColor = Color(0xFF333333),
+                        cursorColor = LuxuryPalette.Champagne
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { onAdminLoginClick() },
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.fillMaxWidth().height(46.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = LuxuryPalette.PureWhite)
+                ) {
+                    Text(
+                        text = "ACCESS DASHBOARD",
+                        color = LuxuryPalette.Onyx,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.6.sp
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Copyright
+        Text(
+            text = "© 2026 REMEDIOZ NATURA. ALL RIGHTS RESERVED.",
+            color = Color(0xFF55534E),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Medium,
+            letterSpacing = 1.4.sp
+        )
     }
 }

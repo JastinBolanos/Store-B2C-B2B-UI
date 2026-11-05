@@ -1,5 +1,8 @@
 package com.ecommerce.app.presentation.features.cart
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -7,23 +10,22 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ecommerce.app.domain.model.CartItem
@@ -31,33 +33,13 @@ import com.ecommerce.app.presentation.components.ProductDetailDialog
 import com.ecommerce.app.presentation.components.getKitImagePainter
 import com.ecommerce.app.presentation.components.getProductImagePainter
 import com.ecommerce.app.presentation.state.CartManager
-import androidx.compose.ui.text.font.Font
-import com.ecommerce.natura.R
+import com.ecommerce.app.presentation.theme.LuxuryPalette
 
 /**
  * ============================================================================
- * 🛍️ SHOPPING CART SCREEN & REACTIVE UI
- * ============================================================================
- * * @description
- * This screen provides the visual interface for the user's shopping cart.
- * It is completely state-driven, observing the `CartManager` singleton via
- * `collectAsState()`. This means any addition, removal, or quantity update
- * triggers an automatic and isolated recomposition of the total amounts and
- * item rows without manual UI refreshing.
- * * Key UX Features implemented:
- * - Real-time Subtotal and Total calculations.
- * - Granular item manipulation (+/- stepper controls).
- * - Multi-path checkout: 'Buy All' (global cart) vs 'Buy Now' (single item).
- * - Dynamic image loading separating Kits from standard Products.
- * * 🔌 NOTE FOR BACKEND / PRICING TEAM:
- * The price calculations (`sumOf`) here rely purely on the client-side state.
- * When hooking up to a real payment gateway (Stripe, PayPal, Niubiz), the
- * final `totalAmount` MUST be recalculated and validated on the Backend server
- * before processing the transaction to prevent client-side manipulation/fraud.
- * * @layer Presentation / Features / Cart
+ * 🛍️ LUXURY SHOPPING BAG SCREEN (MANGO EDITORIAL STYLING)
  * ============================================================================
  */
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
@@ -66,92 +48,197 @@ fun CartScreen(
     onDirectPurchaseClick: (CartItem) -> Unit
 ) {
     val cartItems by CartManager.cartItems.collectAsState()
-
+    val totalCount = cartItems.sumOf { it.quantity }
     val totalAmount = cartItems.sumOf { item ->
         item.product.price * item.quantity
     }
 
     Scaffold(
+        containerColor = LuxuryPalette.PureWhite,
         topBar = {
-            Column {
+            Column(modifier = Modifier.fillMaxWidth().background(LuxuryPalette.PureWhite)) {
                 CenterAlignedTopAppBar(
                     title = {
-                        Text(
-                            text = "Shopping Cart",
-                            fontFamily = FontFamily(Font(R.font.imperial_script)),
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 38.sp,
-                            color = Color.Black
-                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "SHOPPING BAG",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 2.sp,
+                                color = LuxuryPalette.Onyx
+                            )
+                            if (totalCount > 0) {
+                                Text(
+                                    text = "$totalCount ${if (totalCount == 1) "ITEM" else "ITEMS"}",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    letterSpacing = 1.2.sp,
+                                    color = LuxuryPalette.TextCaption
+                                )
+                            }
+                        }
                     },
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
-                            Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", tint = Color.Black)
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = LuxuryPalette.Onyx
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = LuxuryPalette.PureWhite)
                 )
-                HorizontalDivider(color = Color.LightGray, thickness = 1.dp)
+                HorizontalDivider(color = LuxuryPalette.BorderSubtle, thickness = 1.dp)
             }
         },
         bottomBar = {
-            // --- FOOTER: TOTAL AND BUY ALL BUTTON ---
             if (cartItems.isNotEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(24.dp)
+                Surface(
+                    color = LuxuryPalette.PureWhite,
+                    shadowElevation = 8.dp,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Total: $ ${totalAmount.format(2)}", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Box(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
-                            .clip(RoundedCornerShape(32.dp))
-                            .background(Brush.horizontalGradient(listOf(Color(0xFF6B4BFF), Color(0xFF00E676))))
-                            .clickable { onProceedToCheckoutClick() },
-                        contentAlignment = Alignment.Center
+                            .navigationBarsPadding()
+                            .padding(horizontal = 20.dp, vertical = 16.dp)
                     ) {
-                        Text("Buy All", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                        // Complimentary shipping note
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "ESTIMATED TOTAL",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 1.5.sp,
+                                color = LuxuryPalette.TextMuted
+                            )
+                            Text(
+                                text = "$${totalAmount.format(2)}",
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = LuxuryPalette.Onyx
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "COMPLIMENTARY CLIMATE-NEUTRAL DELIVERY",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                            letterSpacing = 1.2.sp,
+                            color = LuxuryPalette.ForestOlive
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Luxury Matte Black Checkout Button
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(LuxuryPalette.Onyx)
+                                .clickable { onProceedToCheckoutClick() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "PROCEED TO CHECKOUT",
+                                color = LuxuryPalette.PureWhite,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 1.8.sp
+                            )
+                        }
                     }
                 }
             }
         }
     ) { paddingValues ->
-
         if (cartItems.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color.White),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .background(LuxuryPalette.PureWhite),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Your cart is empty", fontSize = 18.sp, color = Color.Gray)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ShoppingBag,
+                        contentDescription = null,
+                        tint = LuxuryPalette.BorderLight,
+                        modifier = Modifier.size(56.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "YOUR BAG IS EMPTY",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 2.sp,
+                        color = LuxuryPalette.Onyx
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Explore our botanical formulations, signature elixirs, and curated gift rituals.",
+                        fontSize = 13.sp,
+                        color = LuxuryPalette.TextMuted,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 20.sp,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .border(1.dp, LuxuryPalette.Onyx, RoundedCornerShape(6.dp))
+                            .clickable { onBackClick() }
+                            .padding(horizontal = 24.dp, vertical = 12.dp)
+                    ) {
+                        Text(
+                            text = "EXPLORE THE COLLECTION",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 1.4.sp,
+                            color = LuxuryPalette.Onyx
+                        )
+                    }
+                }
             }
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .background(Color.White)
+                    .background(LuxuryPalette.PureWhite),
+                contentPadding = PaddingValues(vertical = 12.dp)
             ) {
-                items(cartItems) { item ->
-                    CartItemRow(
+                items(cartItems, key = { it.product.id }) { item ->
+                    LuxuryCartItemRow(
                         cartItem = item,
                         onDirectPurchaseClick = onDirectPurchaseClick
                     )
-                    HorizontalDivider(color = Color.LightGray, thickness = 1.dp)
+                    HorizontalDivider(
+                        color = LuxuryPalette.BorderSubtle,
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
                 }
             }
         }
     }
 }
 
-// --- INTERNAL COMPONENT: THE PRODUCT CARD IN THE CART ---
 @Composable
-fun CartItemRow(
+private fun LuxuryCartItemRow(
     cartItem: CartItem,
     onDirectPurchaseClick: (CartItem) -> Unit
 ) {
@@ -169,14 +256,17 @@ fun CartItemRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
+        // Product portrait thumbnail
         Box(
             modifier = Modifier
-                .width(130.dp)
-                .aspectRatio(0.9f)
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFFEBEBEB))
+                .width(105.dp)
+                .height(130.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(LuxuryPalette.Alabaster)
+                .border(1.dp, LuxuryPalette.BorderSubtle, RoundedCornerShape(6.dp))
+                .clickable { showDetails = true }
         ) {
             Image(
                 painter = imagePainter,
@@ -188,155 +278,161 @@ fun CartItemRow(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // 2. Details column on the right
+        // Product details & controls
         Column(modifier = Modifier.weight(1f)) {
-            // Title and delete button
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        product.name,
+                        text = product.category.uppercase(),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.2.sp,
+                        color = LuxuryPalette.ForestOlive
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = product.name,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = (-0.2).sp,
+                        color = LuxuryPalette.Onyx,
+                        maxLines = 2
                     )
-                    Text("$ ${product.price.format(2)}", fontSize = 12.sp, color = Color.Gray)
-                }
-
-                // Cart button
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFFF5252))
-                        .clickable { CartManager.removeProduct(product.id) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.ShoppingCart,
-                        contentDescription = "Delete",
-                        tint = Color.White,
-                        modifier = Modifier.size(14.dp)
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "$${product.price.format(2)} each",
+                        fontSize = 12.sp,
+                        color = LuxuryPalette.TextCaption
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // "Details" row and "View" button
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Details", fontSize = 13.sp, color = Color(0xFF333333))
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(
-                                    Color(0xFF67B2C5),
-                                    Color(0xFF5B78A5)
-                                )
-                            )
-                        )
-                        .clickable { showDetails = true }
-                        .padding(horizontal = 12.dp, vertical = 2.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("View", color = Color.White, fontSize = 10.sp)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(text = "Subtotal: $ ${subtotal.format(2)}", fontSize = 13.sp, color = Color.Black, fontWeight = FontWeight.Bold)
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier
-                    .width(120.dp)
-                    .height(32.dp)
-                    .border(1.dp, Color(0xFFCCCCCC), RoundedCornerShape(6.dp))
-                    .clip(RoundedCornerShape(6.dp)),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier.weight(1f).fillMaxHeight()
-                        .clickable {
-                            if (cartItem.quantity > 1) CartManager.addProduct(product, -1)
-                        },
-                    contentAlignment = Alignment.Center
+                // Delete Button (minimal trash icon)
+                IconButton(
+                    onClick = { CartManager.removeProduct(product.id) },
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
-                        Icons.Default.Remove,
-                        contentDescription = "-",
-                        tint = Color.Black,
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
-                Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(Color(0xFFCCCCCC)))
-                Box(
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = cartItem.quantity.toString(), fontSize = 14.sp, color = Color.Black)
-                }
-                Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(Color(0xFFCCCCCC)))
-                Box(
-                    modifier = Modifier.weight(1f).fillMaxHeight()
-                        .clickable {
-                            CartManager.addProduct(product, 1)
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = "+",
-                        tint = Color.Black,
-                        modifier = Modifier.size(14.dp)
+                        imageVector = Icons.Outlined.DeleteOutline,
+                        contentDescription = "Remove item",
+                        tint = LuxuryPalette.TextCaption,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Buy button
-            Box(
-                modifier = Modifier
-                    .width(120.dp)
-                    .height(28.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(
-                                Color(0xFF4CB8FF),
-                                Color(0xFFFF7A8A)
-                            )
-                        )
-                    )
-                    .clickable {
-                        onDirectPurchaseClick(cartItem)
-                    },
-                contentAlignment = Alignment.Center
+            // Stepper and Item Total Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // Stepper
+                Row(
+                    modifier = Modifier
+                        .height(34.dp)
+                        .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(4.dp))
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(LuxuryPalette.Alabaster),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = {
+                            if (cartItem.quantity > 1) CartManager.addProduct(product, -1)
+                        },
+                        modifier = Modifier.size(34.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Remove,
+                            contentDescription = "Decrease",
+                            tint = LuxuryPalette.Onyx,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
+
+                    Text(
+                        text = cartItem.quantity.toString(),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = LuxuryPalette.Onyx,
+                        modifier = Modifier.padding(horizontal = 6.dp)
+                    )
+
+                    IconButton(
+                        onClick = { CartManager.addProduct(product, 1) },
+                        modifier = Modifier.size(34.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Increase",
+                            tint = LuxuryPalette.Onyx,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
+                }
+
+                // Subtotal
                 Text(
-                    "Buy",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium
+                    text = "$${subtotal.format(2)}",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = LuxuryPalette.Onyx
                 )
             }
 
-            if (showDetails) {
-                ProductDetailDialog(
-                    product = product,
-                    imagePainter = imagePainter,
-                    onDismiss = { showDetails = false }
-                )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Quick actions: View Details & Direct Checkout
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(4.dp))
+                        .clickable { showDetails = true }
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                ) {
+                    Text(
+                        text = "DETAILS",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp,
+                        color = LuxuryPalette.TextMuted
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(LuxuryPalette.Onyx)
+                        .clickable { onDirectPurchaseClick(cartItem) }
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                ) {
+                    Text(
+                        text = "BUY NOW",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp,
+                        color = LuxuryPalette.PureWhite
+                    )
+                }
             }
         }
+    }
+
+    if (showDetails) {
+        ProductDetailDialog(
+            product = product,
+            imagePainter = imagePainter,
+            onDismiss = { showDetails = false }
+        )
     }
 }
 

@@ -1,6 +1,7 @@
 package com.ecommerce.app.presentation.features.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -8,48 +9,27 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.Font
-import com.ecommerce.natura.R
+import com.ecommerce.app.presentation.theme.LuxuryPalette
 
 /**
  * ============================================================================
- * 📦 CUSTOMER ORDER TRACKING & TIMELINE SCREEN
- * ============================================================================
- * * @description
- * This screen provides a visual state-machine representation of an Order's
- * fulfillment journey. It dynamically calculates the active step based on the
- * `currentStatus` string and renders a vertical step-by-step progress tracker.
- * * Key UX Features implemented:
- * - Dynamic color coding (Green for success, Blue for active, Red for exceptions).
- * - Intrinsic UI measurement for seamless vertical connector lines.
- * - Exception handling routing (Dedicated UI block for "Rejected" states
- * with a call-to-action for customer support).
- * * 🔌 NOTE FOR BACKEND / LOGISTICS TEAM:
- * The timeline progression relies on exact string matching from the `statusFlow`
- * list. When integrating with a real logistics or shipping API (like Shippo,
- * DHL, or a custom backend), ensure the server's status enums strictly map to
- * these strings, or update the `statusFlow` list to match the server's payload.
- * For optimal UX, this screen should be connected to a Real-Time stream
- * (WebSockets/FCM) to watch the status move live without manual refreshing.
- * * @layer Presentation / Features / Profile
+ * 📦 LUXURY ORDER TRACKING & DISPATCH TIMELINE (MANGO EDITORIAL STYLING)
  * ============================================================================
  */
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomerTimelineScreen(
@@ -57,156 +37,362 @@ fun CustomerTimelineScreen(
     currentStatus: String,
     onBackClick: () -> Unit
 ) {
-    val imperialFont = FontFamily(Font(R.font.imperial_script))
-    val statusFlow = listOf("Pending", "Approved", "Preparing Package", "In Transit", "Delivered")
+    val statusFlow = listOf(
+        "Pending" to "Order registered in atelier database",
+        "Approved" to "Payment verified by finance team",
+        "Preparing Package" to "Cold-pressed extractions bottled in glass vials",
+        "In Transit" to "Handed over to climate-neutral courier",
+        "Delivered" to "Successfully received by client"
+    )
+
     val isRejected = currentStatus.equals("Rejected", ignoreCase = true)
-    val currentIndex = if (isRejected) 0 else statusFlow.indexOfFirst { it.equals(currentStatus, ignoreCase = true) }.takeIf { it >= 0 } ?: 0
+    val currentIndex = if (isRejected) 0 else statusFlow.indexOfFirst { it.first.equals(currentStatus, ignoreCase = true) }.takeIf { it >= 0 } ?: 0
 
     Scaffold(
+        containerColor = LuxuryPalette.PureWhite,
         topBar = {
-            Column {
+            Column(modifier = Modifier.fillMaxWidth().background(LuxuryPalette.PureWhite)) {
                 CenterAlignedTopAppBar(
-                    title = { Text("Tracking", fontFamily = imperialFont, fontSize = 36.sp, color = Color.Black) },
-                    navigationIcon = {
-                        IconButton(onClick = onBackClick) { Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", tint = Color.Black) }
+                    title = {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "PARCEL TRACKING",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 2.sp,
+                                color = LuxuryPalette.Onyx
+                            )
+                            Text(
+                                text = "ORDER #${orderId.takeLast(6).uppercase()}",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Normal,
+                                letterSpacing = 1.2.sp,
+                                color = LuxuryPalette.TextCaption
+                            )
+                        }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = LuxuryPalette.Onyx
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = LuxuryPalette.PureWhite)
                 )
-                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                HorizontalDivider(color = LuxuryPalette.BorderSubtle, thickness = 1.dp)
             }
         }
     ) { paddingValues ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color.White).verticalScroll(rememberScrollState()).padding(24.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(LuxuryPalette.PureWhite)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 24.dp)
         ) {
-            // --- 1. ORDER HEADER ---
-            Text("Order Details", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-            Spacer(modifier = Modifier.height(12.dp))
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
+            // --- 1. ORDER SUMMARY CARD ---
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(LuxuryPalette.Alabaster)
+                    .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(8.dp))
+                    .padding(20.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    CustomerTimelineDetailRow("Order ID:", orderId.uppercase())
-                    Spacer(modifier = Modifier.height(8.dp))
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "LOGISTICS ATELIER",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.4.sp,
+                                color = LuxuryPalette.ForestOlive
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "CLIMATE-NEUTRAL DISPATCH",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 0.5.sp,
+                                color = LuxuryPalette.Onyx
+                            )
+                        }
 
-                    val statusColor = when {
-                        currentStatus.equals("Delivered", ignoreCase = true) -> Color(0xFF4CAF50)
-                        isRejected -> Color(0xFFD32F2F)
-                        else -> Color(0xFF1976D2)
+                        // Status Pill
+                        val (pillBg, pillText) = when {
+                            currentStatus.equals("Delivered", ignoreCase = true) -> LuxuryPalette.ForestOliveLight to LuxuryPalette.ForestOlive
+                            isRejected -> LuxuryPalette.TerracottaLight to LuxuryPalette.Terracotta
+                            else -> LuxuryPalette.Onyx to LuxuryPalette.PureWhite
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(pillBg)
+                                .border(1.dp, pillText.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                text = currentStatus.uppercase(),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp,
+                                color = pillText
+                            )
+                        }
                     }
-                    CustomerTimelineDetailRow("Current Status:", currentStatus, valueColor = statusColor)
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = LuxuryPalette.BorderSubtle, thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text("ORDER REFERENCE", fontSize = 9.sp, letterSpacing = 1.sp, color = LuxuryPalette.TextCaption)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(orderId.uppercase(), fontSize = 12.sp, fontWeight = FontWeight.Medium, color = LuxuryPalette.Onyx)
+                        }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("COURIER SERVICE", fontSize = 9.sp, letterSpacing = 1.sp, color = LuxuryPalette.TextCaption)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("Eco-Express Natura", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = LuxuryPalette.Onyx)
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(36.dp))
 
-            // --- 2. VISUAL TIMELINE ---
-            Text("Shipping Progress", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-            Spacer(modifier = Modifier.height(24.dp))
+            // --- 2. EDITORIAL VERTICAL TIMELINE ---
+            Text(
+                text = "FULFILLMENT MILESTONES",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.8.sp,
+                color = LuxuryPalette.Onyx
+            )
+            Spacer(modifier = Modifier.height(20.dp))
 
-            statusFlow.forEachIndexed { index, stepName ->
+            statusFlow.forEachIndexed { index, (stepTitle, stepDesc) ->
                 val isCompleted = index <= currentIndex && !isRejected
                 val isLast = index == statusFlow.lastIndex
-                val isActive = index == currentIndex
+                val isActive = index == currentIndex && !isRejected
                 val isStepRejected = isRejected && index == 0
 
-                CustomerTimelineStep(
-                    title = stepName,
+                LuxuryTimelineStepRow(
+                    title = stepTitle,
+                    description = stepDesc,
                     isCompleted = isCompleted,
-                    isLast = isLast,
                     isActive = isActive,
+                    isLast = isLast,
                     isRejected = isStepRejected
                 )
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // --- 3. FRIENDLY OR ALERT FINAL MESSAGE ---
+            // --- 3. CONTEXTUAL STATUS BANNER ---
             if (currentStatus.equals("Delivered", ignoreCase = true)) {
-                Box(modifier = Modifier.fillMaxWidth().background(Color(0xFFE8F5E9), RoundedCornerShape(12.dp)).padding(16.dp), contentAlignment = Alignment.Center) {
-                    Text("Thank you for your purchase! Enjoy your Natura products.", color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(LuxuryPalette.ForestOliveLight)
+                        .border(1.dp, LuxuryPalette.ForestOlive.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                        .padding(18.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "PARCEL DELIVERED TO CLIENT",
+                            color = LuxuryPalette.ForestOlive,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            letterSpacing = 1.4.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Thank you for welcoming our organic formulations into your daily ritual.",
+                            color = LuxuryPalette.ForestOlive.copy(alpha = 0.85f),
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 18.sp
+                        )
+                    }
                 }
             } else if (isRejected) {
-                // REJECTION BOX WITH HELP
-                Box(modifier = Modifier.fillMaxWidth().background(Color(0xFFFFEBEE), RoundedCornerShape(12.dp)).padding(16.dp), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(LuxuryPalette.TerracottaLight)
+                        .border(1.dp, LuxuryPalette.Terracotta.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                        .padding(18.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Your order was rejected.", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Report issue or help",
-                            color = Color(0xFFB71C1C),
-                            fontSize = 14.sp,
+                            text = "ORDER CANCELLED OR INCOMPLETE",
+                            color = LuxuryPalette.Terracotta,
                             fontWeight = FontWeight.Bold,
-                            textDecoration = TextDecoration.Underline,
-                            modifier = Modifier.clickable {
-                                // TODO: Later you can open WhatsApp or a modal here
-                            }
+                            fontSize = 11.sp,
+                            letterSpacing = 1.4.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "The payment voucher could not be verified. Please contact your personal concierge for immediate resolution.",
+                            color = LuxuryPalette.Terracotta.copy(alpha = 0.85f),
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 18.sp
                         )
                     }
                 }
             } else {
-                Box(modifier = Modifier.fillMaxWidth().background(Color(0xFFF0F0F0), RoundedCornerShape(12.dp)).padding(16.dp), contentAlignment = Alignment.Center) {
-                    Text("We will notify you when your order status updates.", color = Color.DarkGray, fontSize = 13.sp, textAlign = TextAlign.Center)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(LuxuryPalette.Alabaster)
+                        .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(6.dp))
+                        .padding(18.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.LocalShipping,
+                            contentDescription = null,
+                            tint = LuxuryPalette.Onyx,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "Our atelier will transmit tracking notifications as each preparation milestone is verified.",
+                            color = LuxuryPalette.TextMuted,
+                            fontSize = 12.sp,
+                            lineHeight = 18.sp
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-// COMPONENT: DRAWS THE DOT AND LINE FOR THE CUSTOMER
+/**
+ * Editorial timeline row with connected vertical rail
+ */
 @Composable
-private fun CustomerTimelineStep(title: String, isCompleted: Boolean, isLast: Boolean, isActive: Boolean, isRejected: Boolean) {
-    val circleColor = when {
-        isRejected -> Color(0xFFD32F2F)
-        isActive && title != "Delivered" -> Color(0xFF1976D2)
-        isActive && title == "Delivered" -> Color(0xFF4CAF50)
-        isCompleted -> Color.Black
-        else -> Color(0xFFE0E0E0)
+private fun LuxuryTimelineStepRow(
+    title: String,
+    description: String,
+    isCompleted: Boolean,
+    isActive: Boolean,
+    isLast: Boolean,
+    isRejected: Boolean
+) {
+    val indicatorColor = when {
+        isRejected -> LuxuryPalette.Terracotta
+        isActive -> LuxuryPalette.Onyx
+        isCompleted -> LuxuryPalette.ForestOlive
+        else -> LuxuryPalette.BorderLight
     }
 
-    val textColor = when {
-        isRejected -> Color(0xFFD32F2F)
-        isActive && title != "Delivered" -> Color(0xFF1976D2)
-        isActive && title == "Delivered" -> Color(0xFF4CAF50)
-        isCompleted -> Color.Black
-        else -> Color.Gray
-    }
-
-    Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(40.dp)) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+    ) {
+        // Vertical rail + indicator node
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.width(32.dp)
+        ) {
             Box(
-                modifier = Modifier.size(24.dp).clip(CircleShape).background(circleColor),
+                modifier = Modifier
+                    .size(20.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (isCompleted || isRejected) indicatorColor else LuxuryPalette.PureWhite
+                    )
+                    .border(
+                        1.5.dp,
+                        if (isActive) LuxuryPalette.Onyx else indicatorColor,
+                        CircleShape
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                if (isCompleted || isRejected) {
-                    val icon = if (isRejected) Icons.Default.Close else Icons.Default.Check
-                    Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                if (isCompleted && !isRejected) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = LuxuryPalette.PureWhite,
+                        modifier = Modifier.size(12.dp)
+                    )
+                } else if (isRejected) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = null,
+                        tint = LuxuryPalette.PureWhite,
+                        modifier = Modifier.size(12.dp)
+                    )
+                } else if (isActive) {
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .clip(CircleShape)
+                            .background(LuxuryPalette.Onyx)
+                    )
                 }
             }
+
             if (!isLast) {
-                val lineColor = if (isCompleted && !isActive && !isRejected) Color.Black else Color(0xFFE0E0E0)
-                Box(modifier = Modifier.width(2.dp).weight(1f).background(lineColor))
+                Box(
+                    modifier = Modifier
+                        .width(1.5.dp)
+                        .weight(1f)
+                        .background(if (isCompleted && !isActive && !isRejected) LuxuryPalette.ForestOlive else LuxuryPalette.BorderLight)
+                )
             }
         }
-        Column(modifier = Modifier.weight(1f).padding(bottom = 32.dp)) {
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Textual step details
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(bottom = if (isLast) 0.dp else 24.dp)
+        ) {
             Text(
-                text = title,
-                fontSize = 16.sp,
-                fontWeight = if (isCompleted || isRejected) FontWeight.Bold else FontWeight.Normal,
-                color = textColor,
-                modifier = Modifier.offset(y = 2.dp)
+                text = title.uppercase(),
+                fontSize = 12.sp,
+                fontWeight = if (isActive || isCompleted) FontWeight.SemiBold else FontWeight.Medium,
+                letterSpacing = 1.sp,
+                color = if (isCompleted || isActive) LuxuryPalette.Onyx else LuxuryPalette.TextCaption
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = description,
+                fontSize = 11.sp,
+                color = LuxuryPalette.TextMuted,
+                lineHeight = 16.sp
             )
         }
-    }
-}
-
-// COMPONENT: TEXT BOX
-@Composable
-private fun CustomerTimelineDetailRow(label: String, value: String, valueColor: Color = Color.Black) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(text = label, color = Color.Gray, fontSize = 14.sp)
-        Text(text = value, color = valueColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
     }
 }

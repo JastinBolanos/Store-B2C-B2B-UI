@@ -1,21 +1,25 @@
 package com.ecommerce.app.presentation.features.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,7 +28,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -43,31 +49,13 @@ import com.ecommerce.app.presentation.features.cart.CartScreen
 import com.ecommerce.app.presentation.features.checkout.CheckoutScreen
 import com.ecommerce.app.presentation.features.checkout.CheckoutViewModel
 import com.ecommerce.app.presentation.state.CartManager
+import com.ecommerce.app.presentation.theme.LuxuryPalette
 
 /**
  * ============================================================================
- * 🏠 HOME SCREEN & CUSTOMER FLOW ORCHESTRATOR
- * ============================================================================
- * * @description
- * This is the primary UI container for the Customer-facing application.
- * It acts as a nested state-machine managing the shopping journey:
- * `STORE` (Browsing) <-> `CART` (Review) <-> `CHECKOUT` (Payment).
- * * It handles complex UI behaviors such as:
- * - Dynamic Category filtering with conditional spacer rendering.
- * - Horizontal scrolling lists for Products and Kits.
- * - 'Direct Purchase' (Buy Now) vs 'Cart Checkout' logic routing.
- * * 🔌 NOTE FOR BACKEND / UI INTEGRATION TEAM:
- * This screen purely observes `StateFlows` exposed by `HomeViewModel` and
- * `CheckoutViewModel`. If the backend API changes the structure of `Product`
- * or `Kit` objects, or adds new categories, only the Repositories need updating.
- * The UI automatically reacts and recomposes.
- * For deep linking (e.g., opening the app directly to a specific product),
- * the `currentScreen` state mechanism here should be replaced or integrated
- * with the native routing library (e.g., Compose Navigation).
- * * @layer Presentation / Features / Home
+ * 🏠 LUXURY HOME & STOREFRONT (MANGO EDITORIAL EXPERIENCE)
  * ============================================================================
  */
-
 @Composable
 fun HomeScreen(
     onAdminClick: () -> Unit,
@@ -99,7 +87,7 @@ fun HomeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White)
+                    .background(LuxuryPalette.PureWhite)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
@@ -115,7 +103,7 @@ fun HomeScreen(
                                 onCartClick = { currentScreen = "CART" },
                                 onProfileClick = { onAuthClick() }
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
 
                             SearchInput(
                                 query = searchQuery,
@@ -129,53 +117,147 @@ fun HomeScreen(
                                 selectedCategory = selectedCategory,
                                 onCategorySelected = { viewModel.updateCategory(it) }
                             )
-                            Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(28.dp))
                         }
                     }
 
+                    // Section 1: The Essential Collection
                     item {
-                        if (verticalProducts.isNotEmpty()) {
-                            LazyRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentPadding = PaddingValues(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.Bottom
                             ) {
-                                items(verticalProducts) { product ->
-                                    ProductCard(
-                                        product = product,
-                                        modifier = Modifier.width(180.dp),
-                                        onBuyNowClick = { qty ->
-                                            directPurchaseItem = CartItem(product = product, quantity = qty)
-                                            currentScreen = "CHECKOUT"
-                                        }
+                                Column {
+                                    Text(
+                                        text = "DAILY RADIANCE",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        letterSpacing = 1.6.sp,
+                                        color = LuxuryPalette.ForestOlive
                                     )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "THE COLLECTION",
+                                        fontSize = 17.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        letterSpacing = 1.2.sp,
+                                        color = LuxuryPalette.Onyx
+                                    )
+                                }
+
+                                if (verticalProducts.isNotEmpty()) {
+                                    Text(
+                                        text = "${verticalProducts.size} ITEMS",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        letterSpacing = 1.sp,
+                                        color = LuxuryPalette.TextCaption
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            if (verticalProducts.isNotEmpty()) {
+                                LazyRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentPadding = PaddingValues(horizontal = 20.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    items(verticalProducts, key = { it.id }) { product ->
+                                        ProductCard(
+                                            product = product,
+                                            modifier = Modifier.width(184.dp),
+                                            onBuyNowClick = { qty ->
+                                                directPurchaseItem = CartItem(product = product, quantity = qty)
+                                                currentScreen = "CHECKOUT"
+                                            }
+                                        )
+                                    }
+                                }
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp, vertical = 24.dp)
+                                        .background(LuxuryPalette.Alabaster, RoundedCornerShape(8.dp))
+                                        .padding(24.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(
+                                            text = "NO FORMULATIONS FOUND",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            letterSpacing = 1.4.sp,
+                                            color = LuxuryPalette.Onyx
+                                        )
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Text(
+                                            text = "Try adjusting your search or category filter.",
+                                            fontSize = 12.sp,
+                                            color = LuxuryPalette.TextMuted
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
 
+                    // Section 2: Curated Sets & Kits
                     item {
                         if (kitsProducts.isNotEmpty()) {
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                val isKitsCategory = selectedCategory.equals("Kits", ignoreCase = true)
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 36.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = "ATELIER SELECTION",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            letterSpacing = 1.6.sp,
+                                            color = LuxuryPalette.Champagne
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = "CURATED SETS & RITUALS",
+                                            fontSize = 17.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            letterSpacing = 1.2.sp,
+                                            color = LuxuryPalette.Onyx
+                                        )
+                                    }
 
-                                if (!isKitsCategory) {
-                                    Spacer(modifier = Modifier.height(20.dp))
                                     Text(
-                                        text = "Kits and Promotions",
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.Black,
-                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                        text = "${kitsProducts.size} SETS",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        letterSpacing = 1.sp,
+                                        color = LuxuryPalette.TextCaption
                                     )
                                 }
 
+                                Spacer(modifier = Modifier.height(14.dp))
+
                                 LazyRow(
                                     modifier = Modifier.fillMaxWidth(),
-                                    contentPadding = PaddingValues(horizontal = 16.dp),
+                                    contentPadding = PaddingValues(horizontal = 20.dp),
                                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
-                                    items(kitsProducts) { product ->
+                                    items(kitsProducts, key = { it.id }) { product ->
                                         LandscapeProductCard(
                                             product = product,
                                             modifier = Modifier,
@@ -190,11 +272,12 @@ fun HomeScreen(
                         }
                     }
 
+                    // Section 3: Testimonial & Campaign Banner + Luxury Footer
                     item {
                         Column(modifier = Modifier.fillMaxWidth()) {
-                            Spacer(modifier = Modifier.height(40.dp))
+                            Spacer(modifier = Modifier.height(44.dp))
                             TestimonialBanner()
-                            Spacer(modifier = Modifier.height(40.dp))
+                            Spacer(modifier = Modifier.height(48.dp))
                             FooterSection(onAdminLoginClick = { onAdminClick() })
                         }
                     }

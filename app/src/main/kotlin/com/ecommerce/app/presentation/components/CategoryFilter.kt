@@ -1,14 +1,19 @@
 package com.ecommerce.app.presentation.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,29 +21,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ecommerce.app.presentation.theme.LuxuryPalette
 
 /**
  * ============================================================================
- * 🏷️ CATEGORY FILTER CHIP ROW (STATELESS)
- * ============================================================================
- * * @description
- * This component renders a horizontally scrollable row of category filter chips.
- * It is strictly stateless, adhering perfectly to the Unidirectional Data Flow
- * (UDF) pattern. It receives the `selectedCategory` as a read-only state and
- * emits user intent upwards via the `onCategorySelected` lambda.
- * * Key Compose Performance Best Practices implemented:
- * - List Virtualization: Utilizes `LazyRow` to efficiently recycle chip
- * composables off-screen, maintaining performance even if the category list grows.
- * - Modifier Delegation: Accepts a base `Modifier` to allow parent containers
- * to dictate external spacing without breaking internal padding.
- * * 🔌 NOTE FOR BACKEND TEAM:
- * The `categories` list is currently hardcoded for showcase purposes. When
- * migrating to production, this component should receive the `List<String>`
- * as a parameter, populated dynamically by a `GET /api/v1/categories` endpoint.
- * * @layer Presentation / Components
+ * 🏷️ LUXURY EDITORIAL CATEGORY TABS (MANGO MINIMALIST VIBE)
  * ============================================================================
  */
-
 @Composable
 fun CategoryFilter(
     selectedCategory: String,
@@ -49,35 +38,53 @@ fun CategoryFilter(
 
     LazyRow(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        contentPadding = PaddingValues(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         items(categories) { category ->
-            val isSelected = category == selectedCategory
+            val isSelected = category.equals(selectedCategory, ignoreCase = true)
+
+            val animatedBgColor by animateColorAsState(
+                targetValue = if (isSelected) LuxuryPalette.Onyx else LuxuryPalette.PureWhite,
+                animationSpec = spring(stiffness = 400f),
+                label = "cat_bg"
+            )
+            val animatedTextColor by animateColorAsState(
+                targetValue = if (isSelected) LuxuryPalette.PureWhite else LuxuryPalette.TextMuted,
+                animationSpec = spring(stiffness = 400f),
+                label = "cat_text"
+            )
+            val animatedBorderColor by animateColorAsState(
+                targetValue = if (isSelected) LuxuryPalette.Onyx else LuxuryPalette.BorderLight,
+                animationSpec = spring(stiffness = 400f),
+                label = "cat_border"
+            )
 
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .clickable {
+                    .clip(RoundedCornerShape(4.dp))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
                         onCategorySelected(category)
                     }
+                    .background(animatedBgColor)
                     .border(
                         width = 1.dp,
-                        color = if (isSelected) Color.Black else Color.LightGray,
-                        shape = RoundedCornerShape(50)
+                        color = animatedBorderColor,
+                        shape = RoundedCornerShape(4.dp)
                     )
-                    .background(
-                        color = if (isSelected) Color.Black else Color.White,
-                        shape = RoundedCornerShape(50)
-                    )
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = category,
-                    color = if (isSelected) Color.White else Color.DarkGray,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
+                    text = category.uppercase(),
+                    color = animatedTextColor,
+                    fontSize = 11.sp,
+                    fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
+                    letterSpacing = 1.5.sp
                 )
             }
         }

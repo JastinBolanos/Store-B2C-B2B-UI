@@ -9,56 +9,31 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.ecommerce.app.presentation.theme.LuxuryPalette
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import kotlinx.coroutines.launch
-import androidx.compose.ui.text.font.Font
-import com.ecommerce.natura.R
 
 /**
  * ============================================================================
- * 🏦 ADMIN PAYMENT CONFIGURATION SCREEN
- * ============================================================================
- * * @description
- * This screen empowers the Store Administrator to dynamically mutate the global
- * payment collection details (P2P Transfer Numbers and QR Codes). Changes made
- * here immediately reflect in the Customer-facing `CheckoutScreen`.
- * * Key UX Features implemented:
- * - Smart Submission State: Utilizes a `hasChanges` derived state to disable
- * the Save button, preventing redundant network requests and identical data writes.
- * - Multi-tiered Image Rendering: Prioritizes local `ByteArray` previews over
- * remote URLs to provide instant visual feedback after file selection.
- * - Input Optimization: Uses `KeyboardType.Phone` to trigger the native numeric
- * dialpad directly, reducing input friction.
- * * 🔌 NOTE FOR BACKEND / DEVOPS TEAM:
- * The `onSaveClick` lambda currently emits a `ByteArray` for the image and a String
- * for the phone number. In a Cloud environment:
- * 1. The `ByteArray` must be uploaded to a secure CDN/Storage bucket first.
- * 2. The resulting public URL, alongside the new phone number, must be patched
- * into the global `StoreSettings` document in your NoSQL/SQL database.
- * 3. The `PaymentSettings` state flow observed by the Checkout Screen should
- * instantly react to this database mutation.
- * * @layer Presentation / Features / Admin
+ * 🏦 LUXURY PAYMENT CONFIGURATION (MANGO EDITORIAL STYLING)
  * ============================================================================
  */
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdatePaymentScreen(
@@ -68,7 +43,6 @@ fun UpdatePaymentScreen(
     onBackClick: () -> Unit,
     onSaveClick: (ByteArray?, String) -> Unit
 ) {
-    val imperialFont = FontFamily(Font(R.font.imperial_script))
     var selectedQrBytes by remember { mutableStateOf<ByteArray?>(null) }
     var phoneNumberText by remember(currentPhoneNumber) { mutableStateOf(currentPhoneNumber) }
     val coroutineScope = rememberCoroutineScope()
@@ -76,7 +50,7 @@ fun UpdatePaymentScreen(
     val launcher = rememberFilePickerLauncher(
         type = PickerType.Image,
         mode = PickerMode.Single,
-        title = "Select your new Yape or Plin QR"
+        title = "Select official Yape/Plin QR code"
     ) { platformFile ->
         if (platformFile != null) {
             coroutineScope.launch {
@@ -86,25 +60,40 @@ fun UpdatePaymentScreen(
     }
 
     Scaffold(
+        containerColor = LuxuryPalette.PureWhite,
         topBar = {
-            Column {
+            Column(modifier = Modifier.fillMaxWidth().background(LuxuryPalette.PureWhite)) {
                 CenterAlignedTopAppBar(
                     title = {
-                        Text(
-                            text = "Payment Methods",
-                            fontFamily = imperialFont,
-                            fontSize = 36.sp,
-                            color = Color.Black
-                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "PAYMENT CHANNELS",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 2.sp,
+                                color = LuxuryPalette.Onyx
+                            )
+                            Text(
+                                text = "YAPE & PLIN CONFIGURATION",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Normal,
+                                letterSpacing = 1.2.sp,
+                                color = LuxuryPalette.TextCaption
+                            )
+                        }
                     },
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
-                            Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", tint = Color.Black)
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = LuxuryPalette.Onyx
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = LuxuryPalette.PureWhite)
                 )
-                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                HorizontalDivider(color = LuxuryPalette.BorderSubtle, thickness = 1.dp)
             }
         }
     ) { paddingValues ->
@@ -112,101 +101,147 @@ fun UpdatePaymentScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .background(LuxuryPalette.PureWhite)
                 .verticalScroll(rememberScrollState())
-                .background(Color.White)
-                .padding(24.dp),
+                .padding(horizontal = 24.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                "Upload the official image of your QR code. This will be updated in real-time on your customers' payment screen.",
-                color = Color.Gray,
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center,
-                lineHeight = 20.sp
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // --- QR UPLOAD BOX ---
+            // Notice banner
             Box(
                 modifier = Modifier
-                    .size(220.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFF9F9F9))
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(LuxuryPalette.Alabaster)
+                    .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(8.dp))
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Any modifications made to the official QR code or settlement phone number will instantly update for customers at checkout.",
+                    color = LuxuryPalette.TextMuted,
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 18.sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            // Section label
+            Text(
+                text = "OFFICIAL SETTLEMENT QR",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.6.sp,
+                color = LuxuryPalette.Onyx
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // QR Frame
+            Box(
+                modifier = Modifier
+                    .size(210.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(LuxuryPalette.Alabaster)
                     .border(
-                        width = 2.dp,
-                        color = if (selectedQrBytes == null) Color.LightGray else Color.Black,
-                        shape = RoundedCornerShape(16.dp)
+                        width = 1.dp,
+                        color = if (selectedQrBytes == null) LuxuryPalette.BorderLight else LuxuryPalette.ForestOlive,
+                        shape = RoundedCornerShape(8.dp)
                     )
                     .clickable { launcher.launch() },
                 contentAlignment = Alignment.Center
             ) {
-                // IMAGE PRIORITY LOGIC
                 if (selectedQrBytes != null) {
                     AsyncImage(
                         model = selectedQrBytes,
                         contentDescription = "New selected QR",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
                     )
                 } else if (currentQrUrl.isNotEmpty()) {
                     AsyncImage(
                         model = currentQrUrl,
                         contentDescription = "Current QR",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
                     )
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
-                            imageVector = Icons.Default.QrCodeScanner,
+                            imageVector = Icons.Outlined.QrCodeScanner,
                             contentDescription = null,
-                            tint = Color.Gray,
-                            modifier = Modifier.size(56.dp)
+                            tint = LuxuryPalette.TextCaption,
+                            modifier = Modifier.size(44.dp)
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text("Tap to upload from gallery", color = Color.Gray, fontSize = 14.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "UPLOAD NEW QR",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.2.sp,
+                            color = LuxuryPalette.Onyx
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Tap to select image",
+                            color = LuxuryPalette.TextMuted,
+                            fontSize = 11.sp
+                        )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-            // NUMBER TEXT FIELD
+            // Phone Input
             OutlinedTextField(
                 value = phoneNumberText,
                 onValueChange = { phoneNumberText = it },
-                label = { Text("Phone number (Yape/Plin)") },
+                label = { Text("Settlement Number (Yape / Plin)", fontSize = 12.sp) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(6.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Black,
-                    focusedLabelColor = Color.Black
+                    focusedContainerColor = LuxuryPalette.Alabaster,
+                    unfocusedContainerColor = LuxuryPalette.Alabaster,
+                    focusedBorderColor = LuxuryPalette.Onyx,
+                    unfocusedBorderColor = LuxuryPalette.BorderLight,
+                    cursorColor = LuxuryPalette.Onyx
                 )
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(36.dp))
 
             val hasChanges = selectedQrBytes != null || phoneNumberText != currentPhoneNumber
 
-            // --- SAVE BUTTON ---
+            // Save Button
             Button(
                 onClick = {
                     if (hasChanges && !isLoading) {
                         onSaveClick(selectedQrBytes, phoneNumberText)
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
                 enabled = hasChanges && !isLoading,
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black, disabledContainerColor = Color.LightGray)
+                shape = RoundedCornerShape(4.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = LuxuryPalette.Onyx,
+                    disabledContainerColor = LuxuryPalette.BorderLight
+                )
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                    CircularProgressIndicator(color = LuxuryPalette.PureWhite, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Text("Save Changes", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        text = if (hasChanges) "SAVE SETTLEMENT CONFIGURATION" else "NO CHANGES DETECTED",
+                        color = if (hasChanges) LuxuryPalette.PureWhite else LuxuryPalette.TextCaption,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 11.sp,
+                        letterSpacing = 1.4.sp
+                    )
                 }
             }
         }

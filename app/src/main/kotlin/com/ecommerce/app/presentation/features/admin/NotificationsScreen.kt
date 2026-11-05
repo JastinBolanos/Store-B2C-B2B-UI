@@ -1,49 +1,33 @@
 package com.ecommerce.app.presentation.features.admin
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.clickable
 import com.ecommerce.app.domain.model.Order
-import androidx.compose.ui.text.font.Font
-import com.ecommerce.natura.R
+import com.ecommerce.app.presentation.theme.LuxuryPalette
 
 /**
  * ============================================================================
- * 🔔 ADMIN NOTIFICATIONS INBOX & ALERTS
- * ============================================================================
- * * @description
- * This screen acts as the real-time alert inbox for the Store Administrator.
- * It observes the global stream of incoming purchases and filters them to
- * display only actionable, "Pending" orders.
- * It features empty-state handling and a custom, lightweight timestamp parser
- * to convert raw epoch milliseconds into a localized timezone (UTC-5) format.
- * * 🔌 NOTE FOR BACKEND / INFRASTRUCTURE TEAM:
- * Currently, this inbox updates reactively via the in-memory `StateFlow`.
- * In a production cloud environment, this screen must be supported by native
- * Push Notifications (Firebase Cloud Messaging - FCM, or Apple APNs).
- * When a background push payload arrives from the server, the app should
- * trigger a silent background fetch (`GET /api/v1/orders?status=pending`)
- * to update the local repository, which will instantly and automatically
- * recompose this UI without user intervention.
- * * @layer Presentation / Features / Admin
+ * 🔔 LUXURY ADMIN NOTIFICATIONS & ALERTS (MANGO EDITORIAL STYLING)
  * ============================================================================
  */
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(
@@ -51,43 +35,93 @@ fun NotificationsScreen(
     onBackClick: () -> Unit,
     onNotificationClick: (Order) -> Unit
 ) {
-    val imperialFont = FontFamily(Font(R.font.imperial_script))
-
     Scaffold(
+        containerColor = LuxuryPalette.PureWhite,
         topBar = {
-            Column {
+            Column(modifier = Modifier.fillMaxWidth().background(LuxuryPalette.PureWhite)) {
                 CenterAlignedTopAppBar(
                     title = {
-                        Text("Notifications", fontFamily = imperialFont, fontSize = 36.sp, color = Color.Black)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "ATELIER ALERTS",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 2.sp,
+                                color = LuxuryPalette.Onyx
+                            )
+                            Text(
+                                text = "${pendingOrders.size} PENDING ACTIONS",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Normal,
+                                letterSpacing = 1.2.sp,
+                                color = LuxuryPalette.TextCaption
+                            )
+                        }
                     },
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
-                            Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", tint = Color.Black)
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = LuxuryPalette.Onyx
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = LuxuryPalette.PureWhite)
                 )
-                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                HorizontalDivider(color = LuxuryPalette.BorderSubtle, thickness = 1.dp)
             }
         }
     ) { paddingValues ->
-
-        // --- NOTIFICATIONS LIST ---
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color.White)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(LuxuryPalette.PureWhite),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp)
         ) {
-            items(pendingOrders) { order ->
-                NotificationItemReal(
+            items(pendingOrders, key = { it.id }) { order ->
+                LuxuryNotificationItem(
                     order = order,
                     onClick = { onNotificationClick(order) }
                 )
-                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
             if (pendingOrders.isEmpty()) {
                 item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        Text("You have no new notifications.", color = Color.Gray)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 40.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(LuxuryPalette.Alabaster)
+                            .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(8.dp))
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Outlined.Notifications,
+                                contentDescription = null,
+                                tint = LuxuryPalette.BorderLight,
+                                modifier = Modifier.size(44.dp)
+                            )
+                            Spacer(modifier = Modifier.height(14.dp))
+                            Text(
+                                text = "INBOX IS UP TO DATE",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.6.sp,
+                                color = LuxuryPalette.Onyx
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "No unconfirmed customer payments or urgent logistics alerts.",
+                                fontSize = 12.sp,
+                                color = LuxuryPalette.TextMuted
+                            )
+                        }
                     }
                 }
             }
@@ -95,65 +129,94 @@ fun NotificationsScreen(
     }
 }
 
-// --- COMPONENT: NOTIFICATION ITEM ---
 @Composable
-fun NotificationItemReal(order: Order, onClick: () -> Unit) {
-    Row(
+fun LuxuryNotificationItem(order: Order, onClick: () -> Unit) {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(LuxuryPalette.PureWhite)
+            .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(8.dp))
             .clickable { onClick() }
-            .background(Color(0xFFF9F9F9))
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.Top
+            .padding(16.dp)
     ) {
-        // Alert Dot
-        Box(
-            modifier = Modifier
-                .padding(top = 6.dp)
-                .size(7.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF5474FF))
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "New Payment: ${order.id.takeLast(4)}",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                Text(
-                    text = formatOrderTime(order.timestamp),
-                    fontSize = 11.sp,
-                    color = Color.Gray
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "${order.customerName} has sent a receipt for $ ${order.totalAmount.format(2)} and awaits your confirmation.",
-                fontSize = 13.sp,
-                color = Color.DarkGray,
-                lineHeight = 18.sp
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top
+        ) {
+            // Elegant Status Dot
+            Box(
+                modifier = Modifier
+                    .padding(top = 5.dp)
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(LuxuryPalette.Terracotta)
             )
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "NEW SETTLEMENT #${order.id.takeLast(6).uppercase()}",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        color = LuxuryPalette.Onyx
+                    )
+                    Text(
+                        text = formatOrderTime(order.timestamp),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 0.5.sp,
+                        color = LuxuryPalette.TextCaption
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "${order.customerName} has uploaded a payment voucher for $${order.totalAmount.format(2)}.",
+                    fontSize = 13.sp,
+                    color = LuxuryPalette.TextMuted,
+                    lineHeight = 18.sp
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "REVIEW & AUTHORIZE",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp,
+                        color = LuxuryPalette.ForestOlive
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = LuxuryPalette.ForestOlive,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+            }
         }
     }
 }
 
-// --- UTILITY: TIME TRANSLATOR FOR PERU (UTC-5) ---
 fun formatOrderTime(millis: Long): String {
     if (millis == 0L) return "Just now"
 
     val totalSeconds = millis / 1000
     val currentSeconds = totalSeconds % (24 * 3600)
 
-    // Calculate the time in UTC-5 (Lima, Peru Time)
     val hours = ((currentSeconds / 3600) - 5 + 24) % 24
     val minutes = (currentSeconds % 3600) / 60
 

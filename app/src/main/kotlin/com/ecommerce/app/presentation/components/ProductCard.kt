@@ -1,63 +1,51 @@
 package com.ecommerce.app.presentation.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddShoppingCart
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ecommerce.app.domain.model.Product
 import com.ecommerce.app.presentation.state.CartManager
-import androidx.compose.ui.res.painterResource
+import com.ecommerce.app.presentation.theme.LuxuryPalette
 import com.ecommerce.natura.R
 
 /**
  * ============================================================================
- * 🛍️ INTERACTIVE PRODUCT CARD COMPONENT
- * ============================================================================
- * * @description
- * This is the primary product display unit. It functions as a reactive accordion,
- * housing an expandable UI that reveals quantity selectors and purchasing calls
- * to action. It inherently observes the global `CartManager` state to reflect
- * real-time cart inclusion status via the quick-add floating action button.
- * * Key Compose UI/UX Features implemented:
- * - Layout Animation: Utilizes `animateContentSize()` to smoothly tween the
- * card boundaries during accordion expand/collapse events.
- * - Multi-Context Reusability: Respects the `isAdminView` flag to conditionally
- * hide transactional controls (Buy/Cart logic) when rendered within the
- * Administrator dashboard.
- * - Resource Mapping Factory: The `getProductImagePainter` acts as a local
- * fallback mechanism, mapping string identifiers to native drawable resources.
- * * 🔌 NOTE FOR BACKEND / ASSETS TEAM:
- * In this offline-first showcase, `getProductImagePainter` binds hardcoded
- * string IDs to native Android resources. When migrating to a live
- * Database, replace this function call with an `AsyncImage` (e.g., Coil or Glide)
- * that loads the raw CDN URL provided by the `product.imageUrl` field.
- * * @layer Presentation / Components
+ * 🛍️ LUXURY EDITORIAL PRODUCT CARD (MANGO RETAIL VIBE)
  * ============================================================================
  */
-
 @Composable
 fun ProductCard(
     product: Product,
@@ -69,7 +57,6 @@ fun ProductCard(
     val name = product.name
     val price = product.price
 
-    // --- STATE ---
     val cartItems by CartManager.cartItems.collectAsState()
     val isInCart = cartItems.any { it.product.id == product.id }
 
@@ -77,21 +64,38 @@ fun ProductCard(
     var quantity by remember { mutableStateOf(1) }
     var showDetails by remember { mutableStateOf(false) }
 
-    // --- MAIN CONTAINER ---
+    val arrowRotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = spring(stiffness = 400f),
+        label = "arrow_rot"
+    )
+
+    val cartButtonBg by animateColorAsState(
+        targetValue = if (isInCart) LuxuryPalette.Onyx else LuxuryPalette.PureWhite.copy(alpha = 0.92f),
+        animationSpec = spring(stiffness = 500f),
+        label = "cart_btn_bg"
+    )
+    val cartButtonIconColor by animateColorAsState(
+        targetValue = if (isInCart) LuxuryPalette.PureWhite else LuxuryPalette.Onyx,
+        animationSpec = spring(stiffness = 500f),
+        label = "cart_btn_icon"
+    )
+
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .border(1.dp, Color(0xFFE5E5E5), RoundedCornerShape(24.dp))
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color.White)
-            .animateContentSize()
+            .clip(RoundedCornerShape(6.dp))
+            .background(LuxuryPalette.PureWhite)
+            .border(1.dp, LuxuryPalette.BorderSubtle, RoundedCornerShape(6.dp))
+            .animateContentSize(spring(stiffness = 600f))
     ) {
-        // --- 1. IMAGE ---
+        // --- 1. EDITORIAL PRODUCT IMAGE CONTAINER ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(0.9f)
-                .background(Color(0xFFEBEBEB))
+                .aspectRatio(0.82f)
+                .background(LuxuryPalette.Alabaster)
+                .clickable { showDetails = true }
         ) {
             if (product.imageUrl.isNotEmpty()) {
                 Image(
@@ -102,163 +106,237 @@ fun ProductCard(
                 )
             }
 
-            // --- CART BUTTON ---
+            // Subtle Category Pill (Top-Left)
+            Box(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .align(Alignment.TopStart)
+                    .background(LuxuryPalette.PureWhite.copy(alpha = 0.88f), RoundedCornerShape(2.dp))
+                    .padding(horizontal = 6.dp, vertical = 3.dp)
+            ) {
+                Text(
+                    text = "ORGANIC",
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 1.2.sp,
+                    color = LuxuryPalette.Onyx
+                )
+            }
+
+            // Quick Add-to-Bag Floating Circle Button (Top-Right)
             if (showCartIcon) {
                 Box(
                     modifier = Modifier
-                        .padding(12.dp)
+                        .padding(8.dp)
                         .align(Alignment.TopEnd)
-                        .size(36.dp)
+                        .size(34.dp)
                         .clip(CircleShape)
-                        .clickable {
+                        .background(cartButtonBg)
+                        .border(1.dp, LuxuryPalette.BorderLight, CircleShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
                             if (isInCart) {
                                 CartManager.removeProduct(productId = product.id)
                             } else {
                                 CartManager.addProduct(product = product, quantity = quantity)
                             }
-                        }
-                        .background(if (isInCart) Color(0xFFFF5252) else Color.White, CircleShape)
-                        .border(
-                            width = if (isInCart) 0.dp else 1.dp,
-                            color = Color.LightGray.copy(alpha = 0.5f),
-                            shape = CircleShape
-                        ),
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.AddShoppingCart,
-                        contentDescription = "Add to cart",
-                        tint = if (isInCart) Color.White else Color.Gray,
-                        modifier = Modifier.size(20.dp)
+                        imageVector = if (isInCart) Icons.Default.Check else Icons.Outlined.ShoppingBag,
+                        contentDescription = if (isInCart) "In cart" else "Add to cart",
+                        tint = cartButtonIconColor,
+                        modifier = Modifier.size(17.dp)
                     )
                 }
             }
         }
 
-        // --- 2. CONTENT (Texts and controls) ---
+        // --- 2. EDITORIAL PRODUCT INFORMATION ---
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
-                .clickable { expanded = !expanded }
-                .padding(16.dp)
+                .padding(horizontal = 12.dp, vertical = 12.dp)
         ) {
-            // --- Title and Arrow Row ---
+            // Product Name
+            Text(
+                text = name,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = LuxuryPalette.Onyx,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                letterSpacing = 0.3.sp
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Price & Quick Action Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = name, fontSize = 18.sp, fontWeight = FontWeight.Medium, color = Color.Black)
-                    Text(text = "\$${product.price.format(2)}", fontSize = 14.sp, color = Color.Gray)
-                }
-                Icon(
-                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = "Expand",
-                    tint = Color.Black,
-                    modifier = Modifier.size(28.dp)
+                Text(
+                    text = "$${price.format(2)}",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = LuxuryPalette.TextMuted,
+                    letterSpacing = 0.5.sp
                 )
+
+                // Toggle Quick-Buy Accordion
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .clickable { expanded = !expanded }
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = if (expanded) "CLOSE" else "ORDER",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        color = LuxuryPalette.Onyx
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Expand",
+                        tint = LuxuryPalette.Onyx,
+                        modifier = Modifier
+                            .size(16.dp)
+                            .rotate(arrowRotation)
+                    )
+                }
             }
 
-            // --- 3. HIDDEN ACCORDION ---
-            if (expanded) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // --- Details + View Button ---
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+            // --- 3. EXPANDABLE LUXURY ORDER ACCORDION ---
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn(spring(stiffness = 500f)),
+                exit = fadeOut(spring(stiffness = 500f))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
                 ) {
-                    Text(text = "Details", fontSize = 16.sp, color = Color(0xFF333333), modifier = Modifier.weight(1f))
-
-                    // --- "View" button ---
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Brush.horizontalGradient(listOf(Color(0xFF67B2C5), Color(0xFF5B78A5))))
-                            .clickable { showDetails = true }
-                            .padding(horizontal = 20.dp, vertical = 6.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("View", color = Color.White, fontSize = 14.sp)
-                    }
-
-                    if (showDetails) {
-                        ProductDetailDialog(
-                            product = product,
-                            imagePainter = getProductImagePainter(product.imageUrl),
-                            onDismiss = { showDetails = false }
-                        )
-                    }
-                }
-
-                if (!isAdminView) {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    val calculatedTotal = product.price * quantity
-
-                    Text(
-                        text = if (quantity > 1) "Subtotal: \$${calculatedTotal.format(2)}" else "Price: \$${calculatedTotal.format(2)}",
-                        fontSize = 15.sp,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Medium
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // --- Quantity Selector [ - | 1 | + ] ---
+                    // Minimalist Stepper [ −  1  + ]
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(44.dp)
-                            .border(1.dp, Color(0xFFCCCCCC), RoundedCornerShape(8.dp))
-                            .clip(RoundedCornerShape(8.dp)),
+                            .height(36.dp)
+                            .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(4.dp))
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(LuxuryPalette.Alabaster),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // --- Minus Button ---
                         Box(
-                            modifier = Modifier.weight(1f).fillMaxHeight().clickable { if (quantity > 1) quantity-- },
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .clickable { if (quantity > 1) quantity-- },
                             contentAlignment = Alignment.Center
-                        ) { Icon(Icons.Default.Remove, contentDescription = "-", tint = Color.Black) }
-
-                        // --- Line ---
-                        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(Color(0xFFCCCCCC)))
-
-                        // --- Number ---
-                        Box(modifier = Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
-                            Text(text = quantity.toString(), fontSize = 18.sp, color = Color.Black)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Remove,
+                                contentDescription = "Decrease",
+                                tint = LuxuryPalette.Onyx,
+                                modifier = Modifier.size(14.dp)
+                            )
                         }
 
-                        // --- Line ---
-                        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(Color(0xFFCCCCCC)))
-
-                        // --- Plus Button ---
                         Box(
-                            modifier = Modifier.weight(1f).fillMaxHeight().clickable { quantity++ },
+                            modifier = Modifier
+                                .weight(1.2f)
+                                .fillMaxHeight()
+                                .background(LuxuryPalette.PureWhite),
                             contentAlignment = Alignment.Center
-                        ) { Icon(Icons.Default.Add, contentDescription = "+", tint = Color.Black) }
+                        ) {
+                            Text(
+                                text = "$quantity",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = LuxuryPalette.Onyx
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .clickable { quantity++ },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Increase",
+                                tint = LuxuryPalette.Onyx,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    // --- Buy Button ---
+                    if (!isAdminView) {
+                        // High-Fashion Solid Black Button
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(38.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(LuxuryPalette.Onyx)
+                                .clickable { onBuyNowClick(quantity) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "BUY NOW • $${(price * quantity).format(2)}",
+                                color = LuxuryPalette.PureWhite,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.2.sp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+                    }
+
+                    // View Details link button
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Brush.horizontalGradient(listOf(Color(0xFF4CB8FF), Color(0xFFFF7A8A))))
-                            .clickable {
-                                onBuyNowClick(quantity)
-                            },
+                            .height(34.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(4.dp))
+                            .background(LuxuryPalette.PureWhite)
+                            .clickable { showDetails = true },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Buy", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                        Text(
+                            text = "VIEW FULL DETAILS",
+                            color = LuxuryPalette.Onyx,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                            letterSpacing = 1.sp
+                        )
                     }
                 }
             }
         }
+    }
+
+    if (showDetails) {
+        ProductDetailDialog(
+            product = product,
+            imagePainter = getProductImagePainter(product.imageUrl),
+            onDismiss = { showDetails = false }
+        )
     }
 }
 
@@ -305,7 +383,7 @@ fun getProductImagePainter(imageUrl: String): Painter {
         "img_tratamiento_cuero_cabelludo" -> R.drawable.img_tratamiento_cuero_cabelludo
         "img_mascarilla_miel" -> R.drawable.img_mascarilla_miel
 
-        // --- FALLBACK (In case an image is not found) ---
+        // --- FALLBACK ---
         else -> R.drawable.img_tinte_seda
     }
     return painterResource(imageRes)

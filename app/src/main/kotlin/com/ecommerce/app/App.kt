@@ -33,6 +33,11 @@ import com.ecommerce.app.presentation.features.home.HomeViewModel
 import com.ecommerce.app.presentation.features.profile.CustomerProfileScreen
 import com.ecommerce.app.presentation.features.profile.CustomerTimelineScreen
 
+import android.app.Activity
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import com.ecommerce.app.presentation.theme.AppTheme
+
 /**
  * ============================================================================
  * MAIN APP NAVIGATOR & DEPENDENCY INJECTION HUB
@@ -60,12 +65,23 @@ import com.ecommerce.app.presentation.features.profile.CustomerTimelineScreen
 
 @Composable
 fun App() {
-
-    MaterialTheme {
+    AppTheme {
         var currentScreen by remember { mutableStateOf("STORE") }
         var selectedOrder by remember { mutableStateOf<com.ecommerce.app.domain.model.Order?>(null) }
         var adminOrdersTab by remember { mutableIntStateOf(0) }
         var isUserLoggedIn by remember { mutableStateOf(false) }
+
+        val view = LocalView.current
+        if (!view.isInEditMode) {
+            val window = (view.context as? Activity)?.window
+            if (window != null) {
+                val insetsController = WindowCompat.getInsetsController(window, view)
+                SideEffect {
+                    insetsController.isAppearanceLightStatusBars = true
+                    insetsController.isAppearanceLightNavigationBars = true
+                }
+            }
+        }
 
         // --- DEPENDENCY INJECTION (OUR FAKE DATABASES) ---
         val productRepository = remember { MockProductRepositoryImpl() }
@@ -79,7 +95,6 @@ fun App() {
                 .statusBarsPadding()
                 .navigationBarsPadding()
         ) {
-
             when (currentScreen) {
                 "STORE" -> {
                     val homeViewModel = viewModel { HomeViewModel(productRepository, kitRepository) }

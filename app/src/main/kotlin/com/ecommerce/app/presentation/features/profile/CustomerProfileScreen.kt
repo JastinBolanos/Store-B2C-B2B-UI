@@ -16,7 +16,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.outlined.LocalShipping
+import androidx.compose.material.icons.outlined.ShoppingBag
+import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,41 +32,22 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.Font
 import com.ecommerce.app.domain.model.Order
 import com.ecommerce.app.presentation.components.getKitImagePainter
 import com.ecommerce.app.presentation.components.getProductImagePainter
+import com.ecommerce.app.presentation.theme.LuxuryPalette
 import com.ecommerce.natura.R
 
 /**
  * ============================================================================
- * 👤 CUSTOMER PROFILE & ORDER HISTORY SCREEN
- * ============================================================================
- * * @description
- * This screen displays the authenticated user's personal information and their
- * complete order history. It features high-performance UI components, such as
- * a GPU-accelerated infinite rotation animation for the profile avatar using
- * `drawBehind` to prevent unnecessary recompositions.
- * * Key UX Features implemented:
- * - Real-time state reflection of Order Statuses (e.g., Pending, Delivered).
- * - Safe UI data extraction (displaying the first item's image as the Order cover).
- * - Empty state handling for new users.
- * * 🔌 NOTE FOR BACKEND / AUTHENTICATION TEAM:
- * The `userName`, `userEmail`, and `userPhotoUrl` parameters are currently
- * passed down from the UI state. When migrating to a real Identity Provider
- * (like Firebase Auth, Auth0, or AWS Cognito), this screen should be fed
- * directly by an `AuthViewModel` that observes the current session state.
- * The `orders` list should be fetched via a secure API endpoint
- * (e.g., `GET /api/v1/orders/me`) authenticated with the user's Bearer token.
- * * @layer Presentation / Features / Profile
+ * 👤 LUXURY CLIENT PROFILE & ATELIER ORDERS (MANGO EDITORIAL STYLING)
  * ============================================================================
  */
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomerProfileScreen(
@@ -73,35 +58,53 @@ fun CustomerProfileScreen(
     onBackClick: () -> Unit,
     onTrackOrderClick: (Order) -> Unit
 ) {
-    val imperialFont = FontFamily(Font(R.font.imperial_script))
-
-    // ANIMATION ENGINE FOR PROFILE BORDER
-    val infiniteTransition = rememberInfiniteTransition(label = "profile_border_animation")
+    // Subtle ambient rotation for avatar halo
+    val infiniteTransition = rememberInfiniteTransition(label = "profile_halo_animation")
     val angle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = LinearEasing),
+            animation = tween(10000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
-        label = "rotation"
+        label = "halo_rotation"
     )
 
     Scaffold(
+        containerColor = LuxuryPalette.PureWhite,
         topBar = {
-            Column {
+            Column(modifier = Modifier.fillMaxWidth().background(LuxuryPalette.PureWhite)) {
                 CenterAlignedTopAppBar(
                     title = {
-                        Text("Profile", fontFamily = imperialFont, fontSize = 36.sp, color = Color.Black)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "CLIENT PROFILE",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 2.sp,
+                                color = LuxuryPalette.Onyx
+                            )
+                            Text(
+                                text = "REMEDIOZ NATURA ATELIER",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Normal,
+                                letterSpacing = 1.4.sp,
+                                color = LuxuryPalette.TextCaption
+                            )
+                        }
                     },
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
-                            Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", tint = Color.Black)
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = LuxuryPalette.Onyx
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = LuxuryPalette.PureWhite)
                 )
-                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                HorizontalDivider(color = LuxuryPalette.BorderSubtle, thickness = 1.dp)
             }
         }
     ) { paddingValues ->
@@ -109,83 +112,273 @@ fun CustomerProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White)
+                .background(LuxuryPalette.PureWhite),
+            contentPadding = PaddingValues(bottom = 40.dp)
         ) {
-            // --- 1. PROFILE HEADER ---
+            // --- 1. LUXURY PROFILE HEADER CARD ---
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(24.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 24.dp)
                 ) {
-                    // PHOTO CIRCLE WITH ANIMATED BORDER
                     Box(
                         modifier = Modifier
-                            .size(106.dp)
-                            .clip(CircleShape)
-                            .drawBehind {
-                                rotate(angle) {
-                                    drawCircle(
-                                        brush = Brush.sweepGradient(
-                                            colors = listOf(
-                                                Color(0xFFE0E0E0),
-                                                Color(0xFFE0E0E0),
-                                                Color(0xFF9E9E9E),
-                                                Color(0xFF424242),
-                                                Color(0xFF9E9E9E),
-                                                Color(0xFFE0E0E0),
-                                                Color(0xFFE0E0E0)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(LuxuryPalette.Alabaster)
+                            .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(8.dp))
+                            .padding(20.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            // Avatar with luxury rotating ambient halo
+                            Box(
+                                modifier = Modifier
+                                    .size(86.dp)
+                                    .clip(CircleShape)
+                                    .drawBehind {
+                                        rotate(angle) {
+                                            drawCircle(
+                                                brush = Brush.sweepGradient(
+                                                    colors = listOf(
+                                                        Color.Transparent,
+                                                        LuxuryPalette.Champagne.copy(alpha = 0.7f),
+                                                        LuxuryPalette.BorderLight,
+                                                        LuxuryPalette.Onyx.copy(alpha = 0.4f),
+                                                        Color.Transparent
+                                                    )
+                                                ),
+                                                radius = size.width
                                             )
-                                        ),
-                                        radius = size.width
+                                        }
+                                    }
+                                    .padding(2.5.dp)
+                                    .clip(CircleShape)
+                                    .background(LuxuryPalette.PureWhite),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.img_perfil),
+                                    contentDescription = "Profile picture",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(18.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                // Membership Badge
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(LuxuryPalette.ForestOliveLight)
+                                        .border(1.dp, LuxuryPalette.ForestOlive.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                                ) {
+                                    Text(
+                                        text = "ATELIER PRIVILEGE CLIENT",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.2.sp,
+                                        color = LuxuryPalette.ForestOlive
                                     )
                                 }
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Text(
+                                    text = userName ?: "Laura Veracruz",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    letterSpacing = (-0.2).sp,
+                                    color = LuxuryPalette.Onyx
+                                )
+
+                                Spacer(modifier = Modifier.height(2.dp))
+
+                                Text(
+                                    text = userEmail ?: "laura.official@gmail.com",
+                                    fontSize = 12.sp,
+                                    color = LuxuryPalette.TextMuted,
+                                    letterSpacing = 0.3.sp
+                                )
                             }
-                            .padding(3.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFF0F0F0)),
-                        contentAlignment = Alignment.Center
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Atelier Status Strip (Pillars)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Image(
-                            painter = painterResource(R.drawable.img_perfil),
-                            contentDescription = "Profile picture",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                        ProfileStatPill(
+                            label = "TOTAL RITUALS",
+                            value = "${orders.size}",
+                            modifier = Modifier.weight(1f)
+                        )
+                        ProfileStatPill(
+                            label = "SUSTAINABILITY",
+                            value = "Organic",
+                            modifier = Modifier.weight(1f)
+                        )
+                        ProfileStatPill(
+                            label = "CONCIERGE",
+                            value = "Active",
+                            modifier = Modifier.weight(1f)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-                    Column {
-                        Text("Personal Information", fontSize = 16.sp, color = Color.Black)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(userName ?: "Laura Veracruz", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                        Text(userEmail ?: "laura.official@gmail.com", fontSize = 14.sp, color = Color.Gray)
+                    // Section Title: Order History
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        Column {
+                            Text(
+                                text = "ACQUIRED FORMULATIONS",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 1.6.sp,
+                                color = LuxuryPalette.ForestOlive
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "ORDER HISTORY & PARCELS",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 1.2.sp,
+                                color = LuxuryPalette.Onyx
+                            )
+                        }
+
+                        if (orders.isNotEmpty()) {
+                            Text(
+                                text = "${orders.size} ${if (orders.size == 1) "ORDER" else "ORDERS"}",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                letterSpacing = 1.sp,
+                                color = LuxuryPalette.TextCaption
+                            )
+                        }
                     }
                 }
-
-                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-
-                // --- SECTION TITLE ---
-                Text(
-                    text = "Your Orders",
-                    fontSize = 30.sp,
-                    fontFamily = imperialFont,
-                    color = Color.Black,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-                )
-                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
             }
 
-            // --- 2. REAL ORDERS LIST ---
-            items(orders) { order ->
-                CustomerOrderCard(order = order, onTrackClick = { onTrackOrderClick(order) })
-                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-            }
-
+            // --- 2. LUXURY ORDER CARDS ---
             if (orders.isEmpty()) {
                 item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        Text("You have no orders yet.", color = Color.Gray)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 24.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(LuxuryPalette.Alabaster)
+                            .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(8.dp))
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.ShoppingBag,
+                                contentDescription = null,
+                                tint = LuxuryPalette.BorderLight,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(14.dp))
+                            Text(
+                                text = "NO ORDERS RECORDED YET",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 1.8.sp,
+                                color = LuxuryPalette.Onyx
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Your bespoke botanical extractions and gift sets will appear here once acquired.",
+                                fontSize = 12.sp,
+                                color = LuxuryPalette.TextMuted,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 18.sp
+                            )
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(LuxuryPalette.Onyx)
+                                    .clickable { onBackClick() }
+                                    .padding(horizontal = 20.dp, vertical = 10.dp)
+                            ) {
+                                Text(
+                                    text = "EXPLORE THE COLLECTION",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    letterSpacing = 1.4.sp,
+                                    color = LuxuryPalette.PureWhite
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                items(orders, key = { it.id }) { order ->
+                    LuxuryCustomerOrderCard(
+                        order = order,
+                        onTrackClick = { onTrackOrderClick(order) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
+
+            // --- 3. CONCIERGE HELP FOOTER STRIP ---
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(LuxuryPalette.Alabaster)
+                        .border(1.dp, LuxuryPalette.BorderSubtle, RoundedCornerShape(6.dp))
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Spa,
+                            contentDescription = null,
+                            tint = LuxuryPalette.ForestOlive,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Column {
+                            Text(
+                                text = "BOTANICAL CONCIERGE ASSISTANCE",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.2.sp,
+                                color = LuxuryPalette.Onyx
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Need tailored guidance with your ritual order? Our atelier team is available.",
+                                fontSize = 11.sp,
+                                color = LuxuryPalette.TextMuted,
+                                lineHeight = 16.sp
+                            )
+                        }
                     }
                 }
             }
@@ -193,15 +386,19 @@ fun CustomerProfileScreen(
     }
 }
 
-// --- COMPONENT: CUSTOMER ORDER CARD ---
+/**
+ * High-fashion Order Card for the Client Profile
+ */
 @Composable
-private fun CustomerOrderCard(order: Order, onTrackClick: () -> Unit) {
+private fun LuxuryCustomerOrderCard(
+    order: Order,
+    onTrackClick: () -> Unit
+) {
     val firstProduct = order.items.firstOrNull()?.product
     val firstProductImage = firstProduct?.imageUrl ?: ""
-    val firstProductName = firstProduct?.name ?: "Natura Product"
-    val firstProductPrice = firstProduct?.price?.format(2) ?: "0.00"
+    val firstProductName = firstProduct?.name ?: "Remedioz Botanical Formulation"
+    val totalItems = order.items.sumOf { it.quantity }
 
-    // IMAGE TRANSLATION LOGIC
     val isKit = firstProduct?.category.equals("Kits", ignoreCase = true)
     val imagePainter = if (isKit) {
         getKitImagePainter(firstProductImage)
@@ -209,69 +406,199 @@ private fun CustomerOrderCard(order: Order, onTrackClick: () -> Unit) {
         getProductImagePainter(firstProductImage)
     }
 
-    val totalItems = order.items.sumOf { it.quantity }
-    val isDelivered = order.status.equals("Delivered", ignoreCase = true)
-    val buttonColor = if (isDelivered) Color(0xFF97DAFD) else Color(0xFFD3D3D3)
-    val textColor = Color.Black
-
-    Row(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-        // Left Column: Image and Texts
-        Column(modifier = Modifier.weight(1f)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFF0F0F0))
-            ) {
-                Image(
-                    painter = imagePainter,
-                    contentDescription = "Product",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = firstProductName, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-            Text(text = "$ $firstProductPrice", fontSize = 12.sp, color = Color.Gray)
-        }
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // Right Column: Statistics and Status Button
-        Column(modifier = Modifier.weight(1.5f)) {
-            CustomerOutlinedStatRow(label = "Quantity:", value = totalItems.toString())
-            Spacer(modifier = Modifier.height(6.dp))
-            CustomerOutlinedStatRow(label = "Total Cost:", value = "$ ${order.totalAmount.format(2)}")
-
-            Spacer(modifier = Modifier.height(6.dp))
-            CustomerOutlinedStatRow(label = "Status:", value = order.status)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(LuxuryPalette.PureWhite)
+            .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(8.dp))
+            .padding(16.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // Header: Order ID + Status Pill
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "View Details",
-                    fontSize = 12.sp,
-                    color = Color.DarkGray,
-                    modifier = Modifier.clickable { onTrackClick() }
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "ORDER #${order.id.takeLast(6).uppercase()}",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        color = LuxuryPalette.Onyx
+                    )
+                }
 
-                // Status Button
-                Button(
-                    onClick = onTrackClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                    shape = RoundedCornerShape(16.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
-                    modifier = Modifier.height(32.dp)
+                OrderStatusPill(status = order.status)
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+            HorizontalDivider(color = LuxuryPalette.BorderSubtle, thickness = 1.dp)
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Body: Thumbnail + Product Details
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(72.dp)
+                        .height(88.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(LuxuryPalette.Alabaster)
+                        .border(1.dp, LuxuryPalette.BorderSubtle, RoundedCornerShape(4.dp))
                 ) {
-                    Text(text = order.status, color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Image(
+                        painter = imagePainter,
+                        contentDescription = firstProductName,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(14.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = if (isKit) "CURATED GIFT SET" else "BOTANICAL EXTRACT",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.2.sp,
+                        color = LuxuryPalette.ForestOlive
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = firstProductName,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = (-0.2).sp,
+                        color = LuxuryPalette.Onyx,
+                        maxLines = 1
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "$totalItems ${if (totalItems == 1) "item" else "items"} in this dispatch",
+                        fontSize = 11.sp,
+                        color = LuxuryPalette.TextCaption
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Total: $${order.totalAmount.format(2)}",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = LuxuryPalette.Onyx
+                    )
                 }
             }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Track Order Action
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(LuxuryPalette.Alabaster)
+                    .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(4.dp))
+                    .clickable { onTrackClick() }
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Outlined.LocalShipping,
+                        contentDescription = null,
+                        tint = LuxuryPalette.Onyx,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "TRACK DISPATCH PROGRESS",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.2.sp,
+                        color = LuxuryPalette.Onyx
+                    )
+                }
+
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    tint = LuxuryPalette.Onyx,
+                    modifier = Modifier.size(14.dp)
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Editorial Order Status Pill
+ */
+@Composable
+private fun OrderStatusPill(status: String) {
+    val (bgColor, textColor, borderCol) = when (status.lowercase()) {
+        "delivered" -> Triple(LuxuryPalette.ForestOliveLight, LuxuryPalette.ForestOlive, LuxuryPalette.ForestOlive.copy(alpha = 0.3f))
+        "approved" -> Triple(LuxuryPalette.ChampagneLight, Color(0xFF8A6C35), LuxuryPalette.Champagne.copy(alpha = 0.5f))
+        "rejected" -> Triple(LuxuryPalette.TerracottaLight, LuxuryPalette.Terracotta, LuxuryPalette.Terracotta.copy(alpha = 0.3f))
+        "in transit", "preparing package" -> Triple(LuxuryPalette.Onyx, LuxuryPalette.PureWhite, LuxuryPalette.Onyx)
+        else -> Triple(LuxuryPalette.Alabaster, LuxuryPalette.TextMuted, LuxuryPalette.BorderLight)
+    }
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(4.dp))
+            .background(bgColor)
+            .border(1.dp, borderCol, RoundedCornerShape(4.dp))
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+    ) {
+        Text(
+            text = status.uppercase(),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+            color = textColor
+        )
+    }
+}
+
+/**
+ * Client Profile Stat Pill
+ */
+@Composable
+private fun ProfileStatPill(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(LuxuryPalette.Alabaster)
+            .border(1.dp, LuxuryPalette.BorderSubtle, RoundedCornerShape(6.dp))
+            .padding(vertical = 10.dp, horizontal = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = value,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = LuxuryPalette.Onyx
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = label,
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 1.sp,
+                color = LuxuryPalette.TextCaption
+            )
         }
     }
 }
@@ -282,20 +609,4 @@ private fun Double.format(digits: Int): String {
     val whole = parts[0]
     val fraction = if (parts.size > 1) parts[1] else "0"
     return "$whole.${fraction.padEnd(digits, '0')}"
-}
-
-// Statistics box
-@Composable
-private fun CustomerOutlinedStatRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .border(1.dp, Color(0xFFCCCCCC), RoundedCornerShape(4.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = label, fontSize = 11.sp, color = Color.Black, modifier = Modifier.weight(1f))
-        Box(modifier = Modifier.width(1.dp).height(12.dp).background(Color(0xFFCCCCCC)))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = value, fontSize = 11.sp, color = Color.Black, fontWeight = FontWeight.Medium)
-    }
 }

@@ -9,7 +9,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -18,43 +20,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ecommerce.app.domain.model.Order
 import com.ecommerce.app.presentation.components.ProductDetailDialog
 import com.ecommerce.app.presentation.components.getKitImagePainter
 import com.ecommerce.app.presentation.components.getProductImagePainter
-import androidx.compose.ui.text.font.Font
-import com.ecommerce.natura.R
+import com.ecommerce.app.presentation.theme.LuxuryPalette
 
 /**
  * ============================================================================
- * 📋 ADMIN ORDERS MANAGEMENT & TABBED ROUTING SCREEN
- * ============================================================================
- * * @description
- * This screen serves as the primary operational dashboard for the Store Admin
- * to track and process incoming orders. It implements a reactive `TabRow`
- * architecture to seamlessly filter the global order state into actionable
- * lists (Pending vs. In-Transit/Delivered) without triggering heavy recompositions
- * or new navigation events.
- * * Key UX Features implemented:
- * - Dynamic UI State Machine: Action buttons inside the `OrderCardReal` adapt
- * their color, text, and availability purely based on the domain-level `Order.status`.
- * - Safe Text Truncation: Prevents UI clipping on large carts using `TextOverflow.Ellipsis`.
- * - Shared Product Dialogs: Reuses the `ProductDetailDialog` to inspect items directly
- * from the order timeline.
- * * 🔌 NOTE FOR BACKEND / DATA TEAM:
- * The current filtering (`orders.filter { ... }`) happens entirely client-side
- * in the device's RAM. For a production environment with thousands of orders,
- * this Tab interaction should be refactored to trigger server-side pagination
- * queries (e.g., `GET /api/v1/orders?status=pending&page=1&limit=20`) to
- * conserve device memory and data bandwidth.
- * * @layer Presentation / Features / Admin
+ * 📋 LUXURY ADMIN ORDERS MANAGEMENT (MANGO EDITORIAL STYLING)
  * ============================================================================
  */
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrdersScreen(
@@ -64,8 +44,7 @@ fun OrdersScreen(
     onBackClick: () -> Unit,
     onConfirmClick: (Order) -> Unit
 ) {
-    val imperialFont = FontFamily(Font(R.font.imperial_script))
-    val tabs = listOf("Pending Confirmation", "Shipping Status")
+    val tabs = listOf("PENDING REVIEW", "ACTIVE DISPATCHES")
 
     val displayedOrders = if (selectedTab == 0) {
         orders.filter { it.status.equals("Pending", ignoreCase = true) }
@@ -74,38 +53,53 @@ fun OrdersScreen(
     }
 
     Scaffold(
+        containerColor = LuxuryPalette.PureWhite,
         topBar = {
-            Column {
+            Column(modifier = Modifier.fillMaxWidth().background(LuxuryPalette.PureWhite)) {
                 CenterAlignedTopAppBar(
                     title = {
-                        Text(
-                            text = "Orders",
-                            fontFamily = imperialFont,
-                            fontSize = 36.sp,
-                            color = Color.Black
-                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "ATELIER ORDERS",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 2.sp,
+                                color = LuxuryPalette.Onyx
+                            )
+                            Text(
+                                text = "${displayedOrders.size} ORDERS IN VIEW",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Normal,
+                                letterSpacing = 1.2.sp,
+                                color = LuxuryPalette.TextCaption
+                            )
+                        }
                     },
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
-                            Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", tint = Color.Black)
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = LuxuryPalette.Onyx
+                            )
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = LuxuryPalette.PureWhite)
                 )
 
-                // --- TABS ---
+                // Editorial Tabs
                 TabRow(
                     selectedTabIndex = selectedTab,
-                    containerColor = Color.White,
-                    contentColor = Color.Black,
+                    containerColor = LuxuryPalette.PureWhite,
+                    contentColor = LuxuryPalette.Onyx,
                     indicator = { tabPositions ->
                         TabRowDefaults.SecondaryIndicator(
                             Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                            color = Color.Black,
+                            color = LuxuryPalette.Onyx,
                             height = 2.dp
                         )
                     },
-                    divider = { HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp) }
+                    divider = { HorizontalDivider(color = LuxuryPalette.BorderSubtle, thickness = 1.dp) }
                 ) {
                     tabs.forEachIndexed { index, title ->
                         Tab(
@@ -114,9 +108,10 @@ fun OrdersScreen(
                             text = {
                                 Text(
                                     text = title,
-                                    fontSize = 13.sp,
-                                    fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (selectedTab == index) Color.Black else Color.DarkGray
+                                    fontSize = 11.sp,
+                                    fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Medium,
+                                    letterSpacing = 1.4.sp,
+                                    color = if (selectedTab == index) LuxuryPalette.Onyx else LuxuryPalette.TextCaption
                                 )
                             }
                         )
@@ -125,21 +120,55 @@ fun OrdersScreen(
             }
         }
     ) { paddingValues ->
-        // --- REAL ORDERS LIST ---
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White)
+                .background(LuxuryPalette.PureWhite),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp)
         ) {
-            items(displayedOrders) { order ->
-                OrderCardReal(order = order, onConfirmClick = { onConfirmClick(order) })
-                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+            items(displayedOrders, key = { it.id }) { order ->
+                LuxuryAdminOrderCard(
+                    order = order,
+                    onConfirmClick = { onConfirmClick(order) }
+                )
+                Spacer(modifier = Modifier.height(14.dp))
             }
+
             if (displayedOrders.isEmpty()) {
                 item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        Text("There are no orders in this section.", color = Color.Gray)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 40.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(LuxuryPalette.Alabaster)
+                            .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(8.dp))
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Outlined.ReceiptLong,
+                                contentDescription = null,
+                                tint = LuxuryPalette.BorderLight,
+                                modifier = Modifier.size(44.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "NO ORDERS IN THIS QUEUE",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.4.sp,
+                                color = LuxuryPalette.Onyx
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = if (selectedTab == 0) "All incoming client orders have been verified." else "No active courier dispatches at this moment.",
+                                fontSize = 12.sp,
+                                color = LuxuryPalette.TextMuted
+                            )
+                        }
                     }
                 }
             }
@@ -147,103 +176,188 @@ fun OrdersScreen(
     }
 }
 
-// --- COMPONENT: REAL ORDER CARD ---
 @Composable
-fun OrderCardReal(order: Order, onConfirmClick: () -> Unit) {
-    // 1. Extract the first product for the image and dialog
+fun LuxuryAdminOrderCard(order: Order, onConfirmClick: () -> Unit) {
     val firstProduct = order.items.firstOrNull()?.product
     val firstProductImage = firstProduct?.imageUrl ?: ""
     val isKit = firstProduct?.category.equals("Kits", ignoreCase = true)
 
-    // 2. Native image translator
     val imagePainter = if (isKit) {
         getKitImagePainter(firstProductImage)
     } else {
         getProductImagePainter(firstProductImage)
     }
 
-    // 3. State to control the dialog
     var showDetailsDialog by remember { mutableStateOf(false) }
-
     val totalItems = order.items.sumOf { it.quantity }
     val productSummary = order.items.joinToString(", ") { "${it.quantity}x ${it.product.name}" }
 
     val isPending = order.status.equals("Pending", ignoreCase = true)
     val isDelivered = order.status.equals("Delivered", ignoreCase = true)
 
-    val buttonColor = when {
-        isPending -> Color(0xFFD9D9D9)
-        isDelivered -> Color(0xFF4CAF50)
-        else -> Color.Black
+    val (statusBg, statusText) = when {
+        isDelivered -> LuxuryPalette.ForestOliveLight to LuxuryPalette.ForestOlive
+        isPending -> LuxuryPalette.TerracottaLight to LuxuryPalette.Terracotta
+        else -> LuxuryPalette.ChampagneLight to Color(0xFF8A6C35)
     }
 
-    val buttonText = when {
-        isPending -> "Go to Confirm"
-        isDelivered -> "Completed"
-        else -> "Manage Shipping"
+    val actionButtonText = when {
+        isPending -> "VERIFY VOUCHER"
+        isDelivered -> "DISPATCH COMPLETED"
+        else -> "MANAGE DISPATCH"
     }
 
-    Row(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-        // Left Column: PRODUCT Image
-        Column(modifier = Modifier.weight(1f)) {
-            Box(modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)).background(Color(0xFFF0F0F0))) {
-                Image(
-                    painter = imagePainter,
-                    contentDescription = "Product",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Order: ${order.id.takeLast(4)}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-        }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(LuxuryPalette.PureWhite)
+            .border(1.dp, LuxuryPalette.BorderLight, RoundedCornerShape(8.dp))
+            .padding(16.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // Header Row: Order ID and Status Pill
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "ORDER #${order.id.takeLast(6).uppercase()}",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        color = LuxuryPalette.Onyx
+                    )
+                    Text(
+                        text = "Client: ${order.customerName}",
+                        fontSize = 11.sp,
+                        color = LuxuryPalette.TextCaption
+                    )
+                }
 
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // Right Column: Stats and Smart Button
-        Column(modifier = Modifier.weight(1.5f)) {
-            // Summary of purchased products
-            Text(
-                text = productSummary,
-                fontSize = 12.sp,
-                color = Color.DarkGray,
-                fontWeight = FontWeight.Medium,
-                maxLines = 2,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Statistics
-            OutlinedStatRow(label = "Qty:", value = "$totalItems items")
-            Spacer(modifier = Modifier.height(4.dp))
-
-            OutlinedStatRow(label = "Total:", value = "$ ${order.totalAmount.format(2)}")
-            Spacer(modifier = Modifier.height(4.dp))
-
-            OutlinedStatRow(label = "Status:", value = order.status)
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "View Details",
-                    fontSize = 12.sp,
-                    color = Color.DarkGray,
-                    modifier = Modifier.clickable {
-                        showDetailsDialog = true
-                    })
-
-                Button(
-                    onClick = onConfirmClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                    shape = RoundedCornerShape(16.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
-                    modifier = Modifier.height(32.dp)
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(statusBg)
+                        .border(1.dp, statusText.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
                     Text(
-                        text = buttonText,
-                        color = if (isPending) Color.Black else Color.White,
-                        fontSize = 12.sp
+                        text = order.status.uppercase(),
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        color = statusText
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+            HorizontalDivider(color = LuxuryPalette.BorderSubtle, thickness = 1.dp)
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Body: Thumbnail and Summary
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(72.dp)
+                        .height(88.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(LuxuryPalette.Alabaster)
+                        .border(1.dp, LuxuryPalette.BorderSubtle, RoundedCornerShape(4.dp))
+                        .clickable { showDetailsDialog = true }
+                ) {
+                    Image(
+                        painter = imagePainter,
+                        contentDescription = "Order Item",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(14.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = productSummary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = LuxuryPalette.Onyx,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 16.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$totalItems ${if (totalItems == 1) "item" else "items"}",
+                            fontSize = 11.sp,
+                            color = LuxuryPalette.TextCaption
+                        )
+                        Text(
+                            text = "Total: $${order.totalAmount.format(2)}",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = LuxuryPalette.Onyx
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "INSPECT FORMULATION",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        color = LuxuryPalette.ForestOlive,
+                        modifier = Modifier.clickable { showDetailsDialog = true }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Action Button
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(if (isDelivered) LuxuryPalette.Alabaster else LuxuryPalette.Onyx)
+                    .border(1.dp, if (isDelivered) LuxuryPalette.BorderLight else LuxuryPalette.Onyx, RoundedCornerShape(4.dp))
+                    .clickable { onConfirmClick() },
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = actionButtonText,
+                        color = if (isDelivered) LuxuryPalette.ForestOlive else LuxuryPalette.PureWhite,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.4.sp
+                    )
+                    if (!isDelivered) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = LuxuryPalette.PureWhite,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 }
             }
         }
@@ -255,22 +369,6 @@ fun OrderCardReal(order: Order, onConfirmClick: () -> Unit) {
             imagePainter = imagePainter,
             onDismiss = { showDetailsDialog = false }
         )
-    }
-}
-
-// --- COMPONENT: STATISTIC BOX ---
-@Composable
-fun OutlinedStatRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .border(1.dp, Color(0xFFCCCCCC), RoundedCornerShape(4.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = label, fontSize = 11.sp, color = Color.Black, modifier = Modifier.weight(1f))
-        Box(modifier = Modifier.width(1.dp).height(12.dp).background(Color(0xFFCCCCCC)))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = value, fontSize = 11.sp, color = Color.Black, fontWeight = FontWeight.Medium)
     }
 }
 
